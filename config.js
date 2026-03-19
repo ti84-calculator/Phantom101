@@ -1,6 +1,6 @@
 window.SITE_CONFIG = {
     name: "Phantom",
-    fullName: "Phantom Unblocked",
+    fullName: "Phantom Study",
     version: "1.1.5",
 
     changelog: [
@@ -16,22 +16,17 @@ window.SITE_CONFIG = {
     quotes: [
         "lebron lebron lebronn james",
         "so tuff",
-        "it is what it is",
+        "tushy boy",
         "do ur work",
-        "this is what happens when u dont touch grass",
-        "FULL BOX",
-        "FULL PIECE",
-        "200!",
+        "wedgie boy",
+        "I'll cook you in chess",
         "press esc + refresh + power button for hacks",
         "press ctrl+x to hide your screen",
         "change the tab title and favicon in settings",
-        "TEACHERR!",
-        "1 pump",
-        "303 headshot",
+        "niti game site",
         "bros prolly a 60 ovr",
-        "take the L lil bro",
         "lebron is OUR goat",
-        "stop looking at my screen",
+        "wedgie wa wa",
     ],
 
     todos: [
@@ -45,10 +40,8 @@ window.SITE_CONFIG = {
 
     ],
 
-    discord: {
-        inviteUrl: "https://discord.gg/tHWx9NXp5p",
-        widgetServer: "1447673724017971324",
-        widgetChannel: "1447673726228496617",
+
+    
     },
 
     firstVisitCloak: false, // fake offline page
