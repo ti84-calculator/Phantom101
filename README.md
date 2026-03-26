@@ -19,6 +19,7 @@
 *   **Panic Key (`Ctrl+Shift+X`)**: Instantly swap your tab to a "safe" page like Google Drive.
 *   **Tab Cloaking**: Disguise your tab as Google Classroom, Drive, or Gmail with one click.
 *   **History Masking**: Launch in an `about:blank` window to keep your browsing history clean.
+*   **Unblock**: Unblock the site for securly by adding `?unblock` to a bookmark, spamming for a few seconds and clicking anywhere to enable leave comformation and unblock the site.
 
 ### Customization
 *   **Dynamic Themes**: Choose from curated themes like Abyss, Midnight, and Rose Pine or create your own.
