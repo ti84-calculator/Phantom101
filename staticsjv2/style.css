@@ -152,7 +152,7 @@ body.phantom-bg-active .tabs {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 8px;
+    padding: 0 8px;
     background: transparent;
     position: relative;
     z-index: 100;
@@ -238,15 +238,15 @@ input.bar::placeholder {
 }
 
 .loading-bar-container {
-    height: 0;
+    height: 2px;
     background: transparent;
     overflow: hidden;
-    transition: height 0.2s ease, opacity 0.2s;
     opacity: 0;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
 }
 
 .loading-bar-container.active {
-    height: 2px;
     opacity: 1;
 }
 
@@ -261,7 +261,7 @@ input.bar::placeholder {
 .iframe-container {
     flex: 1;
     position: relative;
-    background: var(--bg);
+    background: transparent;
 }
 
 .iframe-container iframe {
@@ -269,6 +269,8 @@ input.bar::placeholder {
     height: 100%;
     border: none;
     position: absolute;
+    color-scheme: normal;
+    background: #fff;
 }
 
 .iframe-container iframe.hidden {

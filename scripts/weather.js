@@ -1,4 +1,4 @@
-// Weather widget for Phantom
+// Weather widget
 (function() {
     const Weather = {
         config: {

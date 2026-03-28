@@ -1174,7 +1174,6 @@ async function loadTop10(showType = 'movie') {
         section.style.display = 'block';
     } else {
         section.style.display = 'none';
-        // Continue loading in background so it's ready when they switch back
     }
     track.innerHTML = Array(10).fill(0).map((_, i) => `
         <div class="top10-card top10-card-skeleton">

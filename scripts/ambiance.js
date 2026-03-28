@@ -28,7 +28,6 @@ class AmbianceManager {
 
         this.container.appendChild(this.canvas);
 
-        // Ensure source is applied if it was set before DOM was ready
         if (this.currentSource) {
             this.setSource(this.currentSource);
         }
@@ -46,7 +45,6 @@ class AmbianceManager {
 
         if (this.enabled) {
             this.container?.classList.add('active');
-            // Re-apply current source to restore visuals immediately
             if (this.currentSource) this.setSource(this.currentSource);
             this.startSampling();
         } else {

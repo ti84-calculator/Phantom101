@@ -196,8 +196,7 @@ class AudioEngine {
                         this.queue.push(reload);
                     } else {
                         const ytState = this.player.getPlayerState();
-                        // -1 (unstarted), 5 (cued), 0 (ended), undefined (fresh)
-                        if (ytState === -1 || ytState === 5 || ytState === 0 || ytState === undefined) {
+                       if (ytState === -1 || ytState === 5 || ytState === 0 || ytState === undefined) {
                             reload();
                         } else {
                             this.player.playVideo();
@@ -215,7 +214,6 @@ class AudioEngine {
             this.state.currentTrack.artistName === track.artistName;
 
         if (isSameTrack) {
-            // Always try to play if currently paused or unstarted
             if (!this.state.isPlaying || (this.player && this.player.getPlayerState && this.player.getPlayerState() <= 0)) {
                 this.play();
             }
@@ -445,13 +443,11 @@ class AudioEngine {
         const now = Date.now();
         const wasPlaying = this.state.isPlaying;
 
-        // Reset playing state before attempt; play() will set it back if successful
         this.state.isPlaying = false;
 
         if (wasPlaying && (now - (this.state.timestamp || 0) < 15000)) {
             if (this.state.currentTrack) {
                 console.log('[AudioEngine] Resuming playback...');
-                // We use setTimeout to ensure player is initialized enough
                 setTimeout(() => {
                     this.play(this.state.currentTrack);
                     if (this.state.currentTime > 0) {

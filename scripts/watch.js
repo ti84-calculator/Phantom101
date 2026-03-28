@@ -1,4 +1,3 @@
-// Cloudflare Worker URL for YouTube Search (free, no quota limits)
 const YT_SEARCH_URL = 'https://ytsearch.leelive2021.workers.dev/';
 
 let currentPlatform = 'youtube';

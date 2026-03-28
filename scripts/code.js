@@ -435,7 +435,7 @@ document.getElementById('fix-code-btn').onclick = async () => {
                 while ((match = logRegex.exec(code)) !== null) fixCount++;
                 code = code.replace(logRegex, '');
 
-                // Add missing semicolons (basic check)
+                // Add missing semicolons (basic)
                 const missingSemi = code.split('\n').map(l => {
                     const t = l.trim();
                     if (t.length > 3 && !t.endsWith(';') && !t.endsWith('{') && !t.endsWith('}') && !t.endsWith(',') && !t.includes('//')) {
@@ -447,16 +447,13 @@ document.getElementById('fix-code-btn').onclick = async () => {
                 code = missingSemi;
             }
 
-            // Trim every line
             code = code.split('\n').map(l => l.trimEnd()).join('\n');
 
-            // Ensure final newline
             if (code.length > 0 && !code.endsWith('\n')) {
                 code += '\n';
                 fixCount++;
             }
 
-            // Important: Use executeEdits to preserve Undo/Redo stack (Ctrl+Z)
             if (code !== state.editor.getValue()) {
                 const model = state.editor.getModel();
                 state.editor.executeEdits('fix-code', [{
@@ -465,7 +462,6 @@ document.getElementById('fix-code-btn').onclick = async () => {
                     forceMoveMarkers: true
                 }]);
 
-                // Format again to clean up any messes we made
                 await state.editor.getAction('editor.action.formatDocument').run();
             }
         }

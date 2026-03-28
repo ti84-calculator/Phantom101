@@ -42,12 +42,10 @@
 
         async syncConfig() {
             try {
-                // Try fetching latest config from GitHub
                 const res = await fetch('https://raw.githubusercontent.com/Destroyed12121/Phantom101/refs/heads/master/config.js', { cache: 'no-store' });
                 if (!res.ok) throw new Error('GitHub unreachable');
 
                 const text = await res.text();
-                // Extract SITE_CONFIG object from the JS file text
                 const match = text.match(/window\.SITE_CONFIG\s*=\s*({[\s\S]+});?/);
                 if (match) {
                     const remoteConfig = new Function(`return ${match[1]}`)();
@@ -58,7 +56,6 @@
                         const localDateRaw = (local.date || '').replace(/\s+/g, '/');
                         const remoteDateRaw = (remote.date || '').replace(/\s+/g, '/');
 
-                        // Only use remote if it's newer or we have no local date
                         if (!local.date || (new Date(remoteDateRaw) > new Date(localDateRaw))) {
                             window.SITE_CONFIG.news = remote;
                         } else {
@@ -124,7 +121,6 @@
                 const parts = clean.split('|').map(p => p.trim());
                 let summary = parts[2] || '';
 
-                // Client-side hard cap: Only split if there is a space and a capital letter after the dot (to handle "No. 1")
                 if (summary) {
                     summary = summary.split(/[.!?]\s+(?=[A-Z])/)[0].replace(/[.!?]+$/, '') + '.';
                     if (summary.length > 120) summary = summary.substring(0, 117) + '...';

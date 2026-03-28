@@ -142,7 +142,6 @@ if (isPlayerPage) {
                     loadProvider(PROVIDERS[curProvIdx].id);
                 };
             }
-            // Load default provider from settings or use first provider
             const userDefaultProvider = window.Settings?.get('defaultProvider');
             const defaultProvider = userDefaultProvider && PROVIDERS.find(p => p.id === userDefaultProvider) ? userDefaultProvider : PROVIDERS[0].id;
             const defaultIdx = PROVIDERS.findIndex(p => p.id === defaultProvider);
@@ -168,8 +167,7 @@ if (isPlayerPage) {
         descEl.textContent = (type !== 'game' ? (overview || 'No description') : '');
         if (quoteEl) quoteEl.textContent = q;
 
-        // Ambiance Toggle Support
-        const ambianceBtn = document.getElementById('btn-ambiance');
+         const ambianceBtn = document.getElementById('btn-ambiance');
         if (ambianceBtn) {
             const updateAmbianceBtn = (active) => {
                 ambianceBtn.innerHTML = active ? '<i class="fa-solid fa-wand-magic-sparkles"></i> Ambiance: On' : '<i class="fa-solid fa-wand-magic"></i> Ambiance: Off';
@@ -209,7 +207,6 @@ if (isPlayerPage) {
             item.episode = episode;
         }
 
-        // Find existing entry for this specific item to move it to top
         const filteredHistory = history.filter(h => {
             if (type === 'tv') {
                 const urlObj = new URL(h.url, window.location.origin);
@@ -230,13 +227,11 @@ if (isPlayerPage) {
     let ytPlayer = null;
     let ytInterval = null;
 
-    // YouTube API Loading
-    const tag = document.createElement('script');
+     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     const firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-    // Cooperative YouTube API Loading
     const oldYTReady = window.onYouTubeIframeAPIReady;
     window.onYouTubeIframeAPIReady = () => {
         if (oldYTReady) oldYTReady();
@@ -262,21 +257,18 @@ if (isPlayerPage) {
         const gameImg = params.get('img');
         if (gameImg) window.Ambiance?.setSource(gameImg);
 
-        // Reset visibility
         frame.style.display = 'block';
         frame.width = "100%";
         frame.height = "100%";
         videoFrame.style.display = 'none';
         if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
 
-        // Clear YouTube player trackers
-        if (ytInterval) { clearInterval(ytInterval); ytInterval = null; }
+         if (ytInterval) { clearInterval(ytInterval); ytInterval = null; }
         ytPlayer = null;
 
         const saved = getSavedProgress();
         const startOffset = saved ? saved.currentTime : 0;
 
-        // Check if it's an HLS stream (m3u8)
         const isHLS = url.includes('.m3u8') || url.includes('twitch.leelive2021.workers.dev');
 
         if (isHLS) {
@@ -298,11 +290,9 @@ if (isPlayerPage) {
                 videoFrame.addEventListener('loadedmetadata', initVideo);
             }
 
-            // Track progress for native video
             videoFrame.ontimeupdate = () => {
                 updateHistoryProgress(videoFrame.currentTime, videoFrame.duration);
             };
-            // Use native video for ambiance if available
             window.Ambiance?.setSource(videoFrame);
         } else {
             let finalUrl = url;
@@ -355,11 +345,9 @@ if (isPlayerPage) {
                 let res = await fetch(url);
                 let h = await res.text();
 
-                // jsDelivr 50MB error detection or general connection failure
                 const errorDetect = !res.ok || h.toLowerCase().includes('package size exceeded') || (h.length < 1000 && h.includes('github.com/'));
                 
                 if (errorDetect && url.includes('cdn.jsdelivr.net')) {
-                    // Switch to GitHub Raw fallback (using 'main' branch as specified by the user)
                     let gh = url.replace('cdn.jsdelivr.net/gh/', 'raw.githubusercontent.com/');
                     gh = gh.replace(/raw\.githubusercontent\.com\/([^\/]+\/[^\/]+)\/([^\/]+)/, (m, p1, p2) => {
                         return (p2 === 'main' || p2 === 'master') ? m : `raw.githubusercontent.com/${p1}/main/${p2}`;
@@ -388,7 +376,6 @@ if (isPlayerPage) {
                     else h = `<head>${baseTag}</head>` + h;
                 }
 
-                // Reset and write directly (This fixes the black screen and mime-type issues)
                 frame.src = 'about:blank';
                 setTimeout(() => {
                     try {
@@ -467,7 +454,6 @@ if (isPlayerPage) {
         let key = (type === 'game' || type === 'video') ? urlParam : id;
         if (type === 'tv' && season && episode) key = `${id}_s${season}_e${episode}`;
 
-        // Guard: Prevent overwriting significant progress with 0 right after load
         if (currentTime < 10) {
             const saved = getSavedProgress();
             if (saved && saved.currentTime > 30) return;
@@ -475,7 +461,6 @@ if (isPlayerPage) {
 
         const history = JSON.parse(localStorage.getItem('continue_watching') || '[]');
         
-        // Find existing item in history
         const itemIdx = history.findIndex(h => {
             if (type === 'tv') {
                 const urlObj = new URL(h.url, window.location.origin);
@@ -539,7 +524,6 @@ if (isPlayerPage) {
         a.click();
         window.Notify?.success('Download Started', `${title || 'game'}.html`);
     };
-    // Theater Mode Logic
     let idleTimer;
     const resetIdleTimer = () => {
         if (!document.body.classList.contains('theater-active')) return;
@@ -573,7 +557,6 @@ if (isPlayerPage) {
         }
     };
 
-    // Progress-Tracking for Providers (Vidify and VidSrc.su)
     window.addEventListener('message', (event) => {
         if (event.origin === 'https://player.vidify.top' && event.data?.type === 'WATCH_PROGRESS') {
             switcher.confirm();
