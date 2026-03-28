@@ -12,14 +12,6 @@
         }
     }
 
-    function getConfig() {
-        try {
-            const serverConfig = localStorage.getItem('phantom_server_config');
-            return serverConfig ? JSON.parse(serverConfig) : (window.SITE_CONFIG || { name: 'Phantom', version: '1.0.0', discord: { inviteUrl: '#' }, changelog: [], cloakPresets: [] });
-        } catch {
-            return window.SITE_CONFIG || { name: 'Phantom', version: '1.0.0', discord: { inviteUrl: '#' }, changelog: [], cloakPresets: [] };
-        }
-    }
 
     let config = getConfig();
     const STORAGE_KEY = 'void_settings';
