@@ -4,13 +4,13 @@ window.SITE_CONFIG = {
     version: "1.1.7",
 
     changelog: [
-      "more sources in movies",
-      "fixxed games",
-      "fixxed a broken auto provider switch for movies",
-      "added dragging for news and weather widgets",
-      "unblocked twitch chat",
-      "minor changes"
-    
+        "more sources in movies",
+        "fixxed games",
+        "fixxed a broken auto provider switch for movies",
+        "added dragging for news and weather widgets",
+        "unblocked twitch chat",
+        "minor changes"
+
     ],
 
     quotes: [
@@ -30,7 +30,7 @@ window.SITE_CONFIG = {
     todos: [
         "singlefile",
         "make domainfinder say if its blocked or not"
-],
+    ],
     defaultWisp: "wss://lunarrr.eminescusm.ro/w/",
     wispServers: [
         { name: "Anura's Wisp", url: "wss://anura.mercurywork.shop/" },
@@ -46,6 +46,7 @@ window.SITE_CONFIG = {
     },
 
     firstVisitCloak: false, // fake offline page
+    firstVisitCloakKey: "c",
     defaults: {
         cloakMode: "about:blank",
         selectedCloakPreset: "Quiz",
@@ -86,12 +87,13 @@ window.SITE_CONFIG = {
     themePresets: {
         dark: { name: 'Dark (Default)', bg: { type: 'color', value: '#0a0a0a' }, surface: '#0f0f0f', surfaceHover: '#1a1a1a', surfaceActive: '#252525', secondary: '#2e2e33', border: '#2a2a2a', borderLight: '#2a2a2a', text: '#e4e4e7', textSec: '#71717a', textDim: '#52525b', accent: '#ffffff' },
         midnight: { name: 'Midnight', bg: { type: 'color', value: '#000000' }, surface: '#050505', surfaceHover: '#111111', surfaceActive: '#1a1a1a', secondary: '#111111', border: '#1a1a1a', borderLight: '#111111', text: '#ededed', textSec: '#a3a3a3', textDim: '#737373', accent: '#d4d4d4' },
-        abyss: { name: 'Abyss', bg: { type: 'color', value: '#020617' }, surface: '#0f172a', surfaceHover: '#1e293b', surfaceActive: '#334155', secondary: '#1e293b', border: '#1e293b', borderLight: '#1e293b', text: '#f1f5f9', textSec: '#94a3b8', textDim: '#64748b', accent: '#38bdf8' },
+        abyss: { name: 'Abyss', bg: { type: 'color', value: '#060a1a' }, surface: '#060a1a', surfaceHover: '#060a1a', surfaceActive: '#060a1a', secondary: '#060a1a', border: '#1e293b', borderLight: '#1e293b', text: '#f1f5f9', textSec: '#94a3b8', textDim: '#64748b', accent: '#38bdf8' },
         phantom: { name: 'Phantom', bg: { type: 'color', value: '#0f0a14' }, surface: '#1a0f24', surfaceHover: '#2e1a40', surfaceActive: '#4c2a5c', secondary: '#2e1a40', border: '#2e1a40', borderLight: '#2e1a40', text: '#f3e8ff', textSec: '#d8b4fe', textDim: '#c084fc', accent: '#c084fc' },
         catppuccin: { name: 'Catppuccin', bg: { type: 'color', value: '#1e1e2e' }, surface: '#181825', surfaceHover: '#313244', surfaceActive: '#45475a', secondary: '#181825', border: '#313244', borderLight: '#313244', text: '#cdd6f4', textSec: '#a6adc8', textDim: '#7f849c', accent: '#cba6f7' },
         ocean: { name: 'Oceanic', bg: { type: 'color', value: '#011627' }, surface: '#0B1823', surfaceHover: '#1d3b53', surfaceActive: '#2d4b63', secondary: '#0b2942', border: '#1d3b53', borderLight: '#0b2942', text: '#d6deeb', textSec: '#5f7e97', textDim: '#011627', accent: '#7fdbca' },
     },
 
+    // use "active: true" to set a default background or theme
     backgroundPresets: [
         { id: 'none', name: 'None (Theme Default)', type: 'none' },
         { id: 'f1 car', name: 'F1 Car', type: 'image', url: 'https://images.pexels.com/photos/14401632/pexels-photo-14401632.jpeg', overlay: 0.15 },
@@ -129,8 +131,9 @@ window.SITE_CONFIG = {
 Prioritize upsets, overtime, and buzzer-beaters. Skip boring blowouts unless a low seed caused it.
 NEVER use mascot nicknames — always use full school names in both headlines and summaries.
 Summaries must add NEW context not in the headline (bracket impact, history, streaks). Never just restate the score.
-Only report real, verified results. If unsure, do not include it.
+Only report real, verified and new or upcoming results. If unsure, do not include it.
 Format: * Headline with seeds and score | Source | Summary under 12 words using school names only.
-Example: * (15) Saint Peter's stuns (2) Kentucky 85-79 | ESPN | First 15-seed upset of the tournament with star player scoring 40 points.`
+Example: * (15) Saint Peter's stuns (2) Kentucky 85-79 | ESPN | First 15-seed upset of the tournament with star player scoring 40 points.
+Or something like : upcoming (3) MSU vs (2)Purdue game on 3/29/2026 yada yada.`
     }
 }

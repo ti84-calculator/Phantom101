@@ -1,4 +1,4 @@
-// talking to robots
+// clanker.js
 class PhantomChat {
     constructor() {
         this.state = {
@@ -89,8 +89,6 @@ class PhantomChat {
             if (target.id === 'sidebarOverlay') {
                 this.toggleSidebar(false);
             }
-            
-            // Close attach menu if clicking outside
             if (this.dom.attachMenu && this.dom.attachMenu.classList.contains('active')) {
                 if (!target.closest('.attach-dropdown-container')) {
                     this.dom.attachMenu.classList.remove('active');
@@ -103,7 +101,6 @@ class PhantomChat {
                 e.preventDefault();
                 this.sendMessage();
             }
-            // Add Ctrl+Shift+S for screenshot
             if (e.ctrlKey && e.shiftKey && e.key === 'S') {
                 e.preventDefault();
                 this.takeScreenshot();
@@ -153,7 +150,6 @@ class PhantomChat {
             this.dom.takePhotoBtn.addEventListener('click', () => {
                 this.dom.attachMenu.classList.remove('active');
                 
-                // Extra check for mobile/tablet or systems with cameras
                 if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
                     navigator.mediaDevices.enumerateDevices().then(devices => {
                         const hasCamera = devices.some(device => device.kind === 'videoinput');
@@ -178,7 +174,7 @@ class PhantomChat {
             this.dom.fileInput.addEventListener('change', (e) => {
                 const files = Array.from(e.target.files);
                 this.handleFiles(files);
-                e.target.value = ''; // reset
+                e.target.value = ''; 
             });
         }
 
@@ -186,7 +182,7 @@ class PhantomChat {
             this.dom.cameraInput.addEventListener('change', (e) => {
                 const files = Array.from(e.target.files);
                 this.handleFiles(files);
-                e.target.value = ''; // reset
+                e.target.value = ''; 
             });
         }
 
@@ -277,31 +273,25 @@ class PhantomChat {
                 audio: false
             });
 
-            // Create a hidden video element to capture the frame
             const video = document.createElement('video');
             video.srcObject = stream;
             
-            // Wait for metadata to load so we know dimensions
             await new Promise((resolve) => {
                 video.onloadedmetadata = () => {
                     video.play().then(resolve);
                 };
             });
 
-            // Capture the current frame
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Convert to base64
             const dataUrl = canvas.toDataURL('image/png');
 
-            // Stop all tracks in the stream
             stream.getTracks().forEach(track => track.stop());
 
-            // Add to attachments
             if (this.currentAttachments.length >= 3) {
                  if (window.Notify) Notify.error('Limit Reached', 'Maximum 3 attachments allowed. Please remove one first.');
                  return;
@@ -315,7 +305,7 @@ class PhantomChat {
             
         } catch (err) {
             console.error('Screenshot error:', err);
-            if (err.name !== 'NotAllowedError') { // Don't notify if user just cancelled
+            if (err.name !== 'NotAllowedError') { 
                 if (window.Notify) Notify.error('Capture Failed', 'Could not take screenshot: ' + err.message);
             }
         }
@@ -512,7 +502,7 @@ class PhantomChat {
                 this.state.conversations = saved.conversations || [];
                 this.state.currentId = saved.currentId;
                 Object.assign(this.state.config, saved.config);
-                this.state.config.mode = 'text'; // Always default to text on reload
+                this.state.config.mode = 'text'; 
             }
         } catch { }
 
@@ -636,10 +626,9 @@ class PhantomChat {
                 targetModel = 'gemini-search';
                 if (window.Notify) Notify.info('Model Switched', 'Switched to gemini-search for real-time info. You may disable this in settings.');
                 
-                // Update dropdown visually if it exists
                 if (this.dom.modelSelect && [...this.dom.modelSelect.options].some(o => o.value === 'gemini-search')) {
                     this.dom.modelSelect.value = 'gemini-search';
-                    this.state.config.textModel = 'gemini-search'; // Save it so user sees it matched
+                    this.state.config.textModel = 'gemini-search'; 
                     this.saveState();
                 }
             }
@@ -690,7 +679,6 @@ class PhantomChat {
 
             thinkingEl?.remove();
 
-            // Create the real message element for streaming
             messageEl = this.appendMessage({ role: 'ai', content: '', id: messageId });
             const textContainer = messageEl.querySelector('.message-text');
 
@@ -716,14 +704,9 @@ class PhantomChat {
                             if (content) {
                                 fullContent += content;
 
-                                // Only update UI if this conversation is still active
                                 if (conv.id === this.state.currentId) {
                                     if (!messageEl.parentNode) {
-                                        // If user switched back to this conv, messageEl might have been cleared from DOM
-                                        // We need to re-find or re-append it, but for now just skip UI update 
-                                        // until final render if it's not in DOM
                                     } else {
-                                        // Periodic rendering every 5 seconds
                                         if (Date.now() - lastRenderTime > 5000) {
                                             textContainer.innerHTML = this.processMarkdown(fullContent);
                                             this.finalizeMessageRendering(messageEl, fullContent, 'text', true);
@@ -736,19 +719,16 @@ class PhantomChat {
                                 }
                             }
                         } catch (e) {
-                            // Ignore partial JSON 
                         }
                     }
                 }
             }
-
-            // Final rendering
             conv.messages.push({ role: 'ai', content: fullContent, type: 'text' });
             this.saveState();
 
             if (conv.id === this.state.currentId) {
                 if (!messageEl.parentNode) {
-                    this.render(); // Full re-render if we are on this chat but messageEl was lost
+                    this.render(); 
                 } else {
                     textContainer.innerHTML = this.processMarkdown(fullContent);
                     this.finalizeMessageRendering(messageEl, fullContent, 'text');
@@ -772,7 +752,6 @@ class PhantomChat {
                         }
                         this.scrollToBottom();
                         
-                        // Clear thinking state if aborted early
                         if (el.id === thinkingId) {
                            el.classList.remove('thinking-dots');
                         }
@@ -816,11 +795,9 @@ class PhantomChat {
         let targetIndex = -1;
 
         if (index !== undefined) {
-            // Re-run from a specific user message
             if (conv.messages[index].role === 'user') {
                 targetIndex = index;
             } else {
-                // If it's an AI message, find the preceding user message
                 for (let i = index - 1; i >= 0; i--) {
                     if (conv.messages[i].role === 'user') {
                         targetIndex = i;
@@ -829,7 +806,6 @@ class PhantomChat {
                 }
             }
         } else {
-            // Find the last user message (original behavior)
             for (let i = conv.messages.length - 1; i >= 0; i--) {
                 if (conv.messages[i].role === 'user') {
                     targetIndex = i;
@@ -852,7 +828,6 @@ class PhantomChat {
         if (!conv || !conv.messages[index]) return;
 
         const text = conv.messages[index].content;
-        // Just load the text and clear subsequent history to branch from here
         conv.messages = conv.messages.slice(0, index);
         this.render();
         this.dom.input.value = text;
@@ -866,7 +841,6 @@ class PhantomChat {
             return;
         }
 
-        // Toggle: if currently speaking, stop
         if (window.speechSynthesis.speaking) {
             window.speechSynthesis.cancel();
             this.resetSpeechIcons();
@@ -876,7 +850,7 @@ class PhantomChat {
         this.resetSpeechIcons();
         const icon = btn.querySelector('i');
         if (icon) {
-            icon.className = 'fas fa-times'; // Show X when speaking
+            icon.className = 'fas fa-times'; 
         }
 
         const utterance = new SpeechSynthesisUtterance(text);
@@ -935,50 +909,41 @@ class PhantomChat {
     processMarkdown(content) {
         if (!window.marked) return this.escapeHtml(content);
 
-        // Protect LaTeX from marked mangling
         const mathBlocks = [];
         let placeholderCount = 0;
 
-        // 1. Protect block math $$...$$
         content = content.replace(/\$\$([\s\S]+?)\$\$/g, (match) => {
             const placeholder = `PHANTOMMATHBLOCK${placeholderCount++}X`;
             mathBlocks.push({ placeholder, content: match });
             return placeholder;
         });
 
-        // 2. Protect environments \begin{...}...\end{...}
         content = content.replace(/\\begin\{([a-z*]+)\}[\s\S]+?\\end\{\1\}/g, (match) => {
             const placeholder = `PHANTOMMATHBLOCK${placeholderCount++}X`;
             mathBlocks.push({ placeholder, content: match });
             return placeholder;
         });
 
-        // 3. Protect \[...\]
         content = content.replace(/\\\[([\s\S]+?)\\\]/g, (match) => {
             const placeholder = `PHANTOMMATHBLOCK${placeholderCount++}X`;
             mathBlocks.push({ placeholder, content: match });
             return placeholder;
         });
 
-        // 4. Protect \(...\)
         content = content.replace(/\\\(([\s\S]+?)\\\)/g, (match) => {
             const placeholder = `PHANTOMMATHBLOCK${placeholderCount++}X`;
             mathBlocks.push({ placeholder, content: match });
             return placeholder;
         });
 
-        // 5. Protect inline math $...$
         content = content.replace(/\$([^\$\n]+?)\$/g, (match) => {
             const placeholder = `PHANTOMMATHBLOCK${placeholderCount++}X`;
             mathBlocks.push({ placeholder, content: match });
             return placeholder;
         });
 
-        // Parse markdown
         let html = marked.parse(content);
 
-        // Restore LaTeX blocks
-        // Using function replacement to avoid issues with '$' characters in content
         mathBlocks.forEach(({ placeholder, content: original }) => {
             html = html.replace(placeholder, () => original);
         });
@@ -987,7 +952,6 @@ class PhantomChat {
     }
 
     appendMessage({ role, content, type = 'text', prompt, id, isThinking, index, images, files, conversationId }) {
-        // If conversationId is specified, only proceed if it's the current one
         if (conversationId && conversationId !== this.state.currentId) return null;
         
         this.dom.hero.style.display = 'none';
@@ -1084,7 +1048,6 @@ class PhantomChat {
 
         this.dom.chatBody.appendChild(div);
 
-        // Render Lucide icons in the new message
         if (window.lucide) {
             lucide.createIcons({
                 root: div
@@ -1094,7 +1057,6 @@ class PhantomChat {
         if (!isThinking && content && type === 'text') {
             this.finalizeMessageRendering(div, content, type, false, index);
         } else if (role === 'ai' && !isThinking) {
-            // Attach listeners even if content is empty (for streaming updates later)
             this.attachMessageActionListeners(div, content, type, index);
         }
 
@@ -1144,8 +1106,7 @@ class PhantomChat {
             if (window.hljs) {
                 div.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
             }
-
-            // Decorate code blocks
+            
             div.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'code-block-wrapper';

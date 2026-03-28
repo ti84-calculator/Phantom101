@@ -25,7 +25,6 @@ function renderCloaks() {
             '<span>' + c.name + '</span></button>';
     }).join('');
 
-    // Add "Add Custom Cloak" button at the end (like Save Theme)
     const addBtn = document.createElement('button');
     addBtn.className = 'cloak-btn';
     addBtn.id = 'add-cloak-btn';
@@ -41,7 +40,6 @@ function renderCloaks() {
             settings.selectedCloakPreset = btn.dataset.name;
             saveSettings(settings);
             renderCloaks();
-            // Apply the cloak immediately
             const presets = [...(config.cloakPresets || []), ...(settings.customCloaks || [])];
             const selected = presets.find(p => p.name === btn.dataset.name);
             if (selected) {
@@ -53,7 +51,6 @@ function renderCloaks() {
 }
 renderCloaks();
 
-// Cloak form handling - ensure elements exist
 const addCloakForm = document.getElementById('add-cloak-form');
 const cancelCloakBtn = document.getElementById('cancel-cloak');
 const saveCloakBtn = document.getElementById('save-cloak');

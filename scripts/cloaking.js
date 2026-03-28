@@ -34,13 +34,11 @@
             const presets = getPresets();
             const selectedPresetName = s.selectedCloakPreset;
             
-            // Find preset by name
             const preset = presets.find(pr => pr.name === selectedPresetName);
             if (preset) {
                 setTitle(preset.title);
                 setFavicon(preset.icon || preset.favicon);
             } else {
-                // Fallback to defaults
                 setTitle(window.SITE_CONFIG?.defaults?.tabTitle || 'Phantom Unblocked');
                 setFavicon(window.SITE_CONFIG?.defaults?.tabFavicon || '/favicon.svg');
             }
@@ -72,13 +70,11 @@
         let title = 'Google';
         let icon = 'https://www.google.com/favicon.ico';
         
-        // Find preset by name
         const preset = presets.find(pr => pr.name === selectedPresetName);
         if (preset) {
             title = preset.title || title;
             icon = preset.icon || preset.favicon || icon;
         } else {
-            // Fallback to defaults
             title = window.SITE_CONFIG?.defaults?.tabTitle || title;
             icon = window.SITE_CONFIG?.defaults?.tabFavicon || icon;
         }
@@ -87,10 +83,6 @@
         return `<!DOCTYPE html><html><head>${unblockScript}<title>${title}</title><link rel="icon" href="${icon}"><style>* {margin:0;padding:0;height:100%;overflow:hidden;} iframe{width:100%;height:100%;border:none;}</style></head><body><iframe src="${url}"></iframe></body></html>`;
     };
 
-    // Try to open popup and monitor if it survives for 500ms
-    // Returns: { success: true } if popup works and stays open
-    // Returns: { success: false, reason: 'blocked' } if window.open returned null
-    // Returns: { success: false, reason: 'killed' } if popup was closed by extension (like Securly)
     const tryPopup = (url) => {
         return new Promise((resolve) => {
             const s = window.Settings?.getAll() || {};
@@ -107,14 +99,12 @@
                 win = window.open('about:blank', '_blank');
             }
 
-            // Popup completely blocked by browser
             if (!win) {
                 if (blobUrl) URL.revokeObjectURL(blobUrl);
                 resolve({ success: false, reason: 'blocked' });
                 return;
             }
 
-            // Write content for about:blank mode
             if (mode !== 'blob') {
                 try {
                     win.document.write(getPopupContent(url));
@@ -126,9 +116,6 @@
                 }
             }
 
-            // Use a single timeout to avoid background throttling (which causes a 5s delay).
-            // When the original tab loses focus, browsers throttle timers to ~1s minimum.
-            // If the timer runs, we check once and redirect immediately.
             const timeoutMs = 200;
 
             setTimeout(() => {
@@ -137,14 +124,13 @@
                     resolve({ success: false, reason: 'killed' });
                 } else {
                     resolve({ success: true });
-                    redirectOriginal(); // Instant redirect
+                    redirectOriginal(); 
                     if (blobUrl) setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
                 }
             }, timeoutMs);
         });
     };
 
-    // Load content in-tab (fallback)
     const loadInTab = () => {
         const iframe = document.getElementById('main-frame');
         if (iframe && !iframe.src) iframe.src = 'index2.html';
@@ -152,7 +138,6 @@
         apply();
     };
 
-    // Show launch screen with callback for when button is clicked
     const showLaunchScreen = (onLaunch) => {
         const ls = document.getElementById('launch-screen');
         if (ls) {
@@ -162,22 +147,14 @@
         }
     };
 
-    // Attempt popup with fallback:
-    // 1. Try real popup -> if works (survives 500ms), redirect original tab
-    // 2. If blocked (null) -> show click-to-launch (user gesture might help)
-    // 3. If killed (closed by Securly) -> load in-tab directly
-    // 4. If click-to-launch popup also fails -> load in-tab
     const attemptCloakedLaunch = async (url, hideOverlay = null) => {
         const result = await tryPopup(url);
 
         if (result.success) {
-            // Popup worked and is still open! redirectOriginal() was already called
             return true;
         }
 
         if (result.reason === 'blocked') {
-            // Popup was blocked (window.open returned null)
-            // Show click-to-launch - user gesture might bypass popup blocker
             if (hideOverlay) hideOverlay();
             if (window.Notify) {
                 window.Notify.info('Popups Blocked', 'Please enable popups for this site to use cloaking.');
@@ -192,12 +169,10 @@
                     // Even with user click, popup failed - load in-tab
                     loadInTab();
                 }
-                // If success, redirectOriginal() was called inside tryPopup
             });
-            return true; // Handled (showing launch screen)
+            return true; 
         }
 
-        // reason === 'killed' - Securly/extension killed the popup, go straight to in-tab
         if (hideOverlay) hideOverlay();
         loadInTab();
         return false;
@@ -208,20 +183,18 @@
         const fvKey = 'phantom_fv';
         const urlParams = new URLSearchParams(window.location.search);
 
-        // Handle fake mode (legacy)
         if (urlParams.has('fake')) {
             showLaunchScreen(async () => {
                 document.getElementById('launch-screen').classList.add('hidden');
                 if (s.cloakMode === 'about:blank' || s.cloakMode === 'blob') {
                     const result = await tryPopup(window.location.href.split('?')[0]);
-                    if (result.success) return; // redirectOriginal was called
+                    if (result.success) return; 
                 }
                 loadInTab();
             });
             return;
         }
 
-        // Handle first visit cloak (fake error page)
         if (window.SITE_CONFIG?.firstVisitCloak && !localStorage.getItem(fvKey)) {
             const overlay = document.getElementById('fv-cloak');
             if (overlay) {
@@ -254,7 +227,6 @@
             return;
         }
 
-        // Normal visit - not first time, no fake mode
         if (window.top === window.self && (s.cloakMode === 'about:blank' || s.cloakMode === 'blob')) {
             await attemptCloakedLaunch(window.location.href);
             return;

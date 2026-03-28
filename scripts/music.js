@@ -31,7 +31,7 @@ let playlists = JSON.parse(localStorage.getItem('arcora_playlists')) || [];
 if (!playlists.some(p => p.name === 'Favorites')) {
     playlists.unshift({ name: 'Favorites', songs: [] });
 }
-let forceYTShow = false; // Persistence for manual video toggle
+let forceYTShow = false;
 let searchTimeout;
 let isMuted = false;
 let lastVolume = parseInt(localStorage.getItem('arcora_last_volume')) || 100;
@@ -40,7 +40,6 @@ let lastAttemptedVideoId = null;
 let recentlyPlayed = JSON.parse(localStorage.getItem('arcora_recent')) || [];
 let lastLyricInteraction = 0;
 
-// DOM Elements
 const $ = id => document.getElementById(id);
 const searchInput = $('searchInput');
 const searchResults = $('searchResults');
@@ -69,7 +68,6 @@ const fallbackContainer = $('fallbackContainer');
 const likedCount = $('likedCount');
 const recentCount = $('recentCount');
 
-// Helper functions
 const esc = s => (s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const formatTime = s => isNaN(s) ? '0:00' : `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
 const notify = (type, title, msg) => {
@@ -80,14 +78,11 @@ const notify = (type, title, msg) => {
     }
 };
 
-// Initialization
 document.addEventListener('DOMContentLoaded', () => {
-    // UI Init
     updateRadioUI();
     loadPlaylists();
     renderRecentSongs();
 
-    // Search
     searchInput.addEventListener('input', handleSearchInput);
     searchInput.addEventListener('blur', () => {
         setTimeout(() => searchResults.classList.remove('show'), 250);
@@ -98,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Player controls
     playPauseBtn.addEventListener('click', togglePlayback);
     $('nextBtn').addEventListener('click', playNext);
     $('prevBtn').addEventListener('click', playPrev);
@@ -111,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
     volumeBtn.addEventListener('click', toggleMute);
     progressBar.addEventListener('click', handleSeek);
 
-    // Toggle YT Visibility (hidden button listener)
     $('toggleYTBtn')?.addEventListener('click', () => {
         forceYTShow = !forceYTShow;
         if (forceYTShow) {
@@ -124,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Sidebar playlist expand/collapse
     $('likedPlaylist')?.addEventListener('click', () => {
         const songs = $('likedSongs');
         if (songs) {
@@ -142,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Source Tabs
     document.querySelectorAll('.source-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
@@ -152,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Audio elements for iTunes
     audio1 = $('audio1');
     audio2 = $('audio2');
 
@@ -169,35 +159,28 @@ document.addEventListener('DOMContentLoaded', () => {
         audio2.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); });
     }
 
-    // Add to Playlist button
     $('addToPlaylistBtn')?.addEventListener('click', (e) => {
         if (currentTrack) {
             showAddToPlaylistMenu(e.currentTarget);
         }
     });
 
-    // Mobile Menu
     mobileMenuBtn?.addEventListener('click', () => sidebar.classList.add('mobile-open'));
     closeSidebar?.addEventListener('click', () => sidebar.classList.remove('mobile-open'));
 
     setVolumeUI(lastVolume);
 
-    // Lyrics interaction
     lyricsContent?.addEventListener('wheel', () => lastLyricInteraction = Date.now(), { passive: true });
     lyricsContent?.addEventListener('touchstart', () => lastLyricInteraction = Date.now(), { passive: true });
     lyricsContent?.addEventListener('mousedown', () => lastLyricInteraction = Date.now());
-
-    // New Playlist - simplified inline approach
     $('addPlaylistBtn')?.addEventListener('click', showNewPlaylistPrompt);
     $('cancelPlaylist')?.addEventListener('click', () => $('playlistModal')?.classList.remove('show'));
     $('cancelPlaylistIcon')?.addEventListener('click', () => $('playlistModal')?.classList.remove('show'));
     $('confirmPlaylist')?.addEventListener('click', createNewPlaylist);
 
 
-    // Start sync timer
     startSyncTimer();
 
-    // Initial Sync with Global AudioEngine
     const syncWithAE = () => {
         if (window.AudioEngine) {
             const data = window.AudioEngine.state;
@@ -219,16 +202,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Sync with Global AudioEngine
     window.addEventListener('phantom-audio-update', (e) => {
         const data = e.detail;
         if (!data) return;
-
-        // Sync local state
         isPlaying = data.isPlaying;
         if (data.currentTrack) {
             if (!currentTrack || currentTrack.title !== data.currentTrack.trackName) {
-                // New track from elsewhere (maybe mini-player controlled)
                 currentTrack = {
                     title: data.currentTrack.trackName,
                     artist: data.currentTrack.artistName,
@@ -247,7 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('phantom-audio-ready', syncWithAE);
     syncWithAE();
 
-    // Load YouTube API
     if (!window.YT) {
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -256,7 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// New Playlist prompt (simple)
 function showNewPlaylistPrompt() {
     const modal = $('playlistModal');
     if (modal) {
@@ -267,7 +244,6 @@ function showNewPlaylistPrompt() {
             input.focus();
         }
     } else {
-        // Fallback to prompt if modal missing
         const name = prompt('Enter playlist name:');
         if (name && name.trim()) {
             if (!getPlaylist(name.trim())) {
@@ -283,7 +259,6 @@ function showNewPlaylistPrompt() {
 }
 
 
-// Search Logic
 function handleSearchInput() {
     clearTimeout(searchTimeout);
     const query = searchInput.value.trim();
@@ -341,7 +316,6 @@ function displayResults(results) {
         `;
     }).join('');
 
-    // Store results globally for access
     window._searchResults = results;
 }
 
@@ -373,7 +347,6 @@ window.toggleSearchFavorite = (idx) => {
             genre: item.primaryGenreName || '',
             previewUrl: item.previewUrl || ''
         });
-        // Refresh results display
         displayResults(results);
     }
 };
@@ -390,7 +363,6 @@ window.addSearchResultToPlaylist = (idx) => {
             previewUrl: item.previewUrl || ''
         };
 
-        // Get custom playlists
         const customPlaylists = playlists.filter(p => p.name !== 'Favorites');
         if (customPlaylists.length === 0) {
             notify('info', 'Playlists', 'Create a playlist first');
@@ -417,7 +389,6 @@ window.addSearchResultToPlaylist = (idx) => {
     }
 };
 
-// Playback Logic
 function playSongWithContext(song, playlist, index) {
     currentPlaylist = [...playlist];
     originalPlaylist = [...playlist];
@@ -427,7 +398,6 @@ function playSongWithContext(song, playlist, index) {
 function playSong(title, artist, artwork, genre = '', previewUrl = '', index = -1) {
     console.log('Playing:', title, 'by', artist, 'source:', activeSource);
 
-    // Stop existing players
     if (audioPlayer) {
         audioPlayer.pause();
         audioPlayer.src = '';
@@ -454,16 +424,14 @@ function playSong(title, artist, artwork, genre = '', previewUrl = '', index = -
             genre: genre,
             previewUrl: activeSource === 'itunes' ? previewUrl : null
         }, currentPlaylist);
-        return; // Let AudioEngine handle the actual sound and persistence
+        return; 
     }
 
     if (activeSource === 'itunes' && previewUrl) {
-        // iTunes Preview - Audio Swapping (Gapless)
         const nextAudio = currentAudio === 1 ? audio2 : audio1;
         const prevAudio = currentAudio === 1 ? audio1 : audio2;
 
-        // If nextAudio already has the right src and is loaded, just switch
-        if (nextAudio.src === previewUrl) {
+       if (nextAudio.src === previewUrl) {
             console.log("[Playback] Using pre-buffered audio element");
         } else {
             nextAudio.src = previewUrl;
@@ -485,7 +453,6 @@ function playSong(title, artist, artwork, genre = '', previewUrl = '', index = -
             getYT(`${title} ${artist} audio`);
         });
     } else {
-        // YouTube
         const searchQuery = `${title} ${artist} audio`;
         getYT(searchQuery);
     }
@@ -510,12 +477,10 @@ function updateTrackUI() {
     updateLikeBtn();
     fetchLyrics(artist, title);
     
-    // Reset pre-fetch state for new song
     nextTrackReady = false;
     nextTrackData = null;
 }
 
-// Video cache
 const videoCache = JSON.parse(localStorage.getItem('arcora_video_cache')) || {};
 
 function getYT(query, retryCount = 0) {
@@ -577,7 +542,6 @@ function loadVid(videoId) {
     }
 }
 
-// YouTube Player
 const oldYTReady = window.onYouTubeIframeAPIReady;
 window.onYouTubeIframeAPIReady = () => {
     if (oldYTReady) oldYTReady();
@@ -627,7 +591,6 @@ function onPlayerStateChange(event) {
 function onPlayerError(event) {
     console.warn("YouTube Player Error Code:", event.data);
 
-    // Only notify if it's a real obstruction/block error
     if (event.data === 101 || event.data === 150) {
         notify('warning', 'Playback', 'Video blocked. Try enabling Proxy mode.');
     }
@@ -691,8 +654,7 @@ function playNext() {
         return;
     }
 
-    // Single track handling
-    if (currentPlaylist.length === 1) {
+     if (currentPlaylist.length === 1) {
         if (isRepeat) {
             const next = currentPlaylist[0];
             playSong(next.trackName, next.artistName, next.artworkUrl100, next.genre || '', next.previewUrl || '', 0);
@@ -702,7 +664,6 @@ function playNext() {
         return;
     }
 
-    // End of playlist
     if (!isShuffled && currentIndex >= currentPlaylist.length - 1) {
         if (isRadioMode) {
             startRadio();
@@ -714,7 +675,6 @@ function playNext() {
         return;
     }
 
-    // Normal next
     let nextIndex;
     if (isShuffled) {
         do { nextIndex = Math.floor(Math.random() * currentPlaylist.length); }
@@ -736,21 +696,17 @@ function playPrev() {
         const prev = currentPlaylist[prevIndex];
         playSong(prev.trackName, prev.artistName, prev.artworkUrl100, prev.genre || '', prev.previewUrl || '', prevIndex);
     } else {
-        // Restart current track
         if (activeSource === 'itunes' && audioPlayer) audioPlayer.currentTime = 0;
         else if (player && player.seekTo) player.seekTo(0);
     }
 }
 
-// Radio Mode - Enhanced Discovery Backend
 async function startRadio() {
     if (!currentTrack) {
         toggleRadioMode();
         return;
     }
-
-    // Don't flood if queue is still healthy
-    const remaining = currentPlaylist.length - (currentIndex + 1);
+const remaining = currentPlaylist.length - (currentIndex + 1);
     if (remaining > 5) return;
 
     notify('info', 'Radio', 'Refining discovery...');
@@ -775,8 +731,7 @@ async function startRadio() {
             return s.trackName.toLowerCase() !== currentTitle;
         });
 
-        // Shuffle and pick 10 tracks to keep the radio alive longer
-        candidates.sort(() => Math.random() - 0.5);
+       candidates.sort(() => Math.random() - 0.5);
         const selected = candidates.slice(0, 10);
 
         if (selected.length > 0) {
@@ -815,7 +770,6 @@ function updateRadioUI() {
     radioBadge?.classList.toggle('show', isRadioMode);
 }
 
-// Hybrid Buffering System
 async function preFetchNext() {
     if (nextTrackReady || currentIndex >= currentPlaylist.length - 1) return;
     
@@ -828,7 +782,6 @@ async function preFetchNext() {
     if (activeSource === 'youtube') {
         const query = `${next.trackName} ${next.artistName} audio`;
         if (!videoCache[query]) {
-            // Resolve YT ID ahead of time
             try {
                 const currentKey = YT_KEYS[keyIndex];
                 keyIndex = (keyIndex + 1) % YT_KEYS.length;
@@ -842,8 +795,7 @@ async function preFetchNext() {
             } catch (e) { console.warn('[Buffering] YT Pre-fetch failed', e); }
         }
     } else if (activeSource === 'itunes' && next.previewUrl) {
-        // Pre-load audio element
-        const nextAudio = currentAudio === 1 ? audio2 : audio1;
+      const nextAudio = currentAudio === 1 ? audio2 : audio1;
         nextAudio.src = next.previewUrl;
         nextAudio.load();
         console.log('[Buffering] iTunes preview pre-loaded');
@@ -852,7 +804,6 @@ async function preFetchNext() {
     nextTrackReady = true;
 }
 
-// Lyrics
 function fetchLyrics(artist, title) {
     lyricsContent.innerHTML = '<div class="lyrics-line">Loading...</div>';
 
@@ -911,7 +862,6 @@ function renderLyrics(lines) {
 
 window.seekTo = (time) => {
     try {
-        // Try AudioEngine first
         if (window.AudioEngine) {
             window.AudioEngine.seek(time);
             return;
@@ -925,14 +875,12 @@ window.seekTo = (time) => {
     } catch (e) { }
 };
 
-// Sync Timer
 function startSyncTimer() {
     if (syncTimer) clearInterval(syncTimer);
     syncTimer = setInterval(updateProgress, 100);
 }
 
 function updateProgress() {
-    // If AudioEngine is active, we rely on the event listener for updates
     if (window.AudioEngine && window.AudioEngine.state.currentTrack) {
         return;
     }
@@ -945,12 +893,10 @@ function updateProgress() {
             curr = audioPlayer.currentTime || 0;
             dur = audioPlayer.duration || 0;
         } else if (player && typeof player.getCurrentTime === 'function') {
-            // Try to get time even if playerReady isn't set - the player may still work
             curr = player.getCurrentTime() || 0;
             dur = player.getDuration() || 0;
         }
     } catch (e) {
-        // Silent fail - player may not be ready yet
         return;
     }
 
@@ -965,21 +911,17 @@ function updateProgressLocal(curr, dur) {
         currentTimeEl.textContent = formatTime(curr);
         totalTimeEl.textContent = formatTime(dur);
 
-        // Hybrid Buffering Trigger (~20 seconds before end)
         if (dur - curr < 20) {
             preFetchNext();
         }
         
-        // Radio refill trigger
         if (isRadioMode && (currentPlaylist.length - currentIndex < 3)) {
             startRadio();
         }
 
-        // Sync Lyrics
         const lines = document.querySelectorAll('.lyrics-line[data-time]');
         let activeIdx = -1;
 
-        // Find the current active line index
         for (let i = 0; i < lines.length; i++) {
             const t = parseFloat(lines[i].dataset.time);
             if (curr >= t) {
@@ -992,9 +934,7 @@ function updateProgressLocal(curr, dur) {
         if (activeIdx !== -1) {
             const activeLine = lines[activeIdx];
 
-            // Only update classes and scroll if the active line changed
             if (activeLine !== lastActiveLine) {
-                // Update previous lines to 'past' and clear 'active'
                 lines.forEach((l, i) => {
                     l.classList.remove('active');
                     if (i < activeIdx) {
@@ -1008,20 +948,15 @@ function updateProgressLocal(curr, dur) {
                 activeLine.classList.remove('past');
                 lastActiveLine = activeLine;
 
-                // Check if user has manually scrolled recently (within 3 seconds)
                 const now = Date.now();
                 const allowAutoScroll = (now - lastLyricInteraction > 3000);
 
                 if (allowAutoScroll) {
-                    // Scroll to center the active line in the container
-                    // offsetTop is relative to the parent, so we need to subtract the container's scroll position
                     const containerRect = lyricsContent.getBoundingClientRect();
                     const lineRect = activeLine.getBoundingClientRect();
                     const relativeTop = lineRect.top - containerRect.top;
                     const containerMidpoint = lyricsContent.offsetHeight / 2;
                     const lineMidpoint = activeLine.offsetHeight / 2;
-
-                    // Calculate how much to scroll to center the line
                     const currentScroll = lyricsContent.scrollTop;
                     const targetScroll = currentScroll + relativeTop - containerMidpoint + lineMidpoint;
 
@@ -1029,7 +964,6 @@ function updateProgressLocal(curr, dur) {
                 }
             }
         } else if (lastActiveLine !== null) {
-            // Reset if we go back to start
             lines.forEach(l => l.classList.remove('active', 'past'));
             lastActiveLine = null;
             const now = Date.now();
@@ -1040,7 +974,6 @@ function updateProgressLocal(curr, dur) {
     }
 }
 
-// Controls
 function toggleShuffle() {
     isShuffled = !isShuffled;
     shuffleBtn?.classList.toggle('active', isShuffled);
@@ -1126,7 +1059,6 @@ function updatePlayBtn() {
     playPauseBtn.querySelector('i').className = isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play';
 }
 
-// Playlist Management
 function getPlaylist(name) {
     return playlists.find(p => p.name === name);
 }
@@ -1134,13 +1066,11 @@ function getPlaylist(name) {
 function loadPlaylists() {
     const fav = getPlaylist('Favorites');
 
-    // Liked Songs
     if (fav && $('likedSongs')) {
         $('likedSongs').innerHTML = fav.songs.slice(0, 50).map((s, i) => renderMiniSong(s, 'Favorites', i)).join('');
         if (likedCount) likedCount.textContent = `${fav.songs.length} songs`;
     }
 
-    // Custom Playlists
     const customContainer = $('customPlaylists');
     if (customContainer) {
         const custom = playlists.filter(p => p.name !== 'Favorites');

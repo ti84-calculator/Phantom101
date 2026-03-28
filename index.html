@@ -262,10 +262,20 @@
                         }
                     }
 
-                    if (window.SITE_CONFIG && window.SITE_CONFIG.firstVisitCloak && !hasBypassed && !urlParams.has('fake')) {
+                    const reqDns = urlParams.has('x_err');
+                    const sDisp = reqDns || (window.SITE_CONFIG && window.SITE_CONFIG.firstVisitCloak && !hasBypassed && !urlParams.has('fake'));
+
+                    if (sDisp) {
                         const overlay = document.getElementById('fv-cloak');
                         if (overlay) overlay.style.display = 'block';
                         document.title = origin;
+                        
+                        if (reqDns) {
+                            document.getElementById('main-message').innerHTML += '<p style="color:#e4e4e7; margin-top:10px; font-weight: 500;">ERR_CONNECTION_CLOSED</p>';
+                            const btn = document.getElementById('reload-button');
+                            if(btn) btn.remove();
+                            if(window.SITE_CONFIG) window.SITE_CONFIG.firstVisitCloakKey = Math.random().toString(36);
+                        }
 
                         document.querySelectorAll("link[rel*='icon']").forEach(l => l.remove());
                         const icon = document.createElement('link');
@@ -278,7 +288,8 @@
                         document.head.appendChild(style);
 
                         const onKey = (e) => {
-                            if (e.key.toLowerCase() === 'c') {
+                            const bypassKey = (window.SITE_CONFIG.firstVisitCloakKey || 'c').toLowerCase();
+                            if (e.key.toLowerCase() === bypassKey) {
                                 localStorage.setItem(STORAGE_KEY, 'true');
                                 document.removeEventListener('keydown', onKey);
                                 launchApp();
@@ -373,7 +384,7 @@
         window.showLoading = showLoading;
         window.hideLoading = hideLoading;
 
-        console.log('press c to enter');
+        console.log('press ' + (window.SITE_CONFIG && window.SITE_CONFIG.firstVisitCloakKey ? window.SITE_CONFIG.firstVisitCloakKey : 'c') + ' to enter');
     </script>
 </body>
 
