@@ -128,11 +128,12 @@
         },
 
         getProxyPath() {
-            const path = window.location.pathname;
-            const pathParts = path.split('/').filter(Boolean);
-            const depth = pathParts.length;
-            const relativePath = depth > 1 ? '../'.repeat(depth - 1) + 'scripts/bg-proxy.html' : 'scripts/bg-proxy.html';
-            return relativePath;
+            const script = document.querySelector('script[src*="background.js"]');
+            if (script) {
+                const src = script.getAttribute('src');
+                if (src) return src.replace('background.js', 'bg-proxy.html');
+            }
+            return 'scripts/bg-proxy.html';
         },
 
         async waitForReady(timeout = 5000) {

@@ -11,6 +11,7 @@
         import * as BareMux from "https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.mjs";
         window.BareMux = BareMux;
         window.bareMuxReady = true;
+        window.parent.postMessage({ type: 'bg-proxy-ready' }, '*');
     </script>
 </head>
 
@@ -52,9 +53,8 @@
 
         async function proxyImage(url, requestId) {
             try {
-                await ensureConnection();
-
-                const client = new window.BareMux.BareClient();
+                const conn = await ensureConnection();
+                const client = new window.BareMux.BareClient(conn);
                 const response = await client.fetch(url);
 
                 if (!response.ok) {
@@ -87,6 +87,7 @@
                     reader.readAsDataURL(blob);
                 });
             } catch (error) {
+                console.error('[BG-Proxy] Failed to proxy image:', error);
                 window.parent.postMessage({
                     type: 'bg-proxy-response',
                     requestId,
@@ -101,8 +102,6 @@
                 await proxyImage(e.data.url, e.data.requestId);
             }
         });
-
-        window.parent.postMessage({ type: 'bg-proxy-ready' }, '*');
     </script>
 </body>
 
