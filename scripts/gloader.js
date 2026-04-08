@@ -59,8 +59,8 @@ const Gloader = {
             const res = await fetch(ZONES_1_URL);
             const data = await res.json();
             return data.map(g => ({
-                name: this.formatName((g.name || g.title).replace('-a.html', '')),
-                url: (g.url || g.file)?.replace('{HTML_URL}', HTML_PREFIX_1).replace('-a.html', '.html'),
+                name: this.formatName((g.name || g.title)),
+                url: (g.url || g.file)?.replace('{HTML_URL}', HTML_PREFIX_1),
                 img: (g.cover || g.img || g.image)?.replace('{COVER_URL}', COVER_PREFIX_1),
                 type: 'gnmath',
                 normalized: this.normalize(g.name || g.title),

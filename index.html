@@ -39,21 +39,20 @@
         .loading-screen {
             position: fixed;
             inset: 0;
-            background: rgba(10, 10, 10, 0.6);
+            background: color-mix(in srgb, var(--bg, #0a0a0a) 85%, transparent);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10000;
+            z-index: 9999;
         }
 
         .loading-screen.hidden {
             opacity: 0;
-            visibility: hidden;
             pointer-events: none;
-            transition: opacity 0.5s ease-in-out, visibility 0.5s;
+            transition: opacity 0.4s ease-out;
         }
 
         .loading-logo {
@@ -155,6 +154,13 @@
             
             if (p.has('unblock') || p.has('unblock all') || p.get('unblock') === 'all' || localStorage.getItem(unblockKey) === 'true') {
                 localStorage.setItem(unblockKey, 'true');
+
+                try {
+                    const s = JSON.parse(localStorage.getItem('void_settings') || '{}');
+                    s.cloakMode = 'none';
+                    localStorage.setItem('void_settings', JSON.stringify(s));
+                } catch (e) { }
+
                 window.addEventListener('beforeunload', (e) => {
                     e.preventDefault();
                     e.returnValue = '';
@@ -337,38 +343,32 @@
 
     <iframe id="main-frame"></iframe>
 
-    <script src="scripts/rotation.js" defer></script>
-
     <script>
         const loadingScreen = document.getElementById('loading-screen');
         const iframe = document.getElementById('main-frame');
         let loadStartTime = Date.now();
-        let fallbackTimer = setTimeout(hideLoading, 2000);
-
-
+        let fallbackTimer = setTimeout(hideLoading, 2500);
 
         function showLoading() {
             loadingScreen.classList.remove('hidden');
-            if (window.Quotes) window.Quotes.init(true);
             loadStartTime = Date.now();
 
             clearTimeout(fallbackTimer);
-            fallbackTimer = setTimeout(hideLoading, 2000);
+            fallbackTimer = setTimeout(hideLoading, 2500);
         }
 
         function hideLoading() {
             clearTimeout(fallbackTimer);
-
-            const minTime = 50;
+            // Min time 0.5s (500ms)
+            const minTime = 500;
             const elapsed = Date.now() - loadStartTime;
             const remaining = Math.max(0, minTime - elapsed);
 
             setTimeout(() => {
                 loadingScreen.classList.add('hidden');
             }, remaining);
-        }
 
-        iframe.addEventListener('load', function() {
+            // Re-attach listener to the new window for next navigation
             try {
                 if (iframe.contentWindow) {
                     iframe.contentWindow.removeEventListener('unload', showLoading);
@@ -377,9 +377,10 @@
                     });
                 }
             } catch (e) { }
+        }
 
-            hideLoading();
-        });
+        // Listen for iframe load events
+        iframe.addEventListener('load', hideLoading);
 
         window.showLoading = showLoading;
         window.hideLoading = hideLoading;

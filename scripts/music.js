@@ -5,8 +5,8 @@ const YT_KEYS = [
     "AIzaSyC3Z3jpYx5bw9M_Hih4sxF8iuiYZ4m3Qis",
     "AIzaSyCWl9hmr-a0dVHKeUmUP5P7boAWJ3h48fs"
 ];
-const LRC_LYRIC_EP = "https://lrclib.net/api/get";
-const SEARCH_EP = "https://itunes.apple.com/search?term=";
+const LRC_LYRIC_EP = "https://musicsearch.leelive2021.workers.dev/lyrics";
+const SEARCH_EP = "https://musicsearch.leelive2021.workers.dev/?term=";
 
 // State Management
 let player;
@@ -19,7 +19,7 @@ let currentPlaylist = [];
 let originalPlaylist = [];
 let currentIndex = -1;
 let isShuffled = false;
-let isRadioMode = false;
+let isRadioMode = localStorage.getItem('arcora_radio_mode') === 'true';
 let isRepeat = false;
 let activeSource = 'youtube';
 let audioPlayer = null;
@@ -431,7 +431,7 @@ function playSong(title, artist, artwork, genre = '', previewUrl = '', index = -
         const nextAudio = currentAudio === 1 ? audio2 : audio1;
         const prevAudio = currentAudio === 1 ? audio1 : audio2;
 
-       if (nextAudio.src === previewUrl) {
+        if (nextAudio.src && nextAudio.src === previewUrl) {
             console.log("[Playback] Using pre-buffered audio element");
         } else {
             nextAudio.src = previewUrl;
@@ -611,18 +611,8 @@ function hideFallback() {
 }
 
 function togglePlayback() {
-    console.log('[Music] Toggle Playback. Current track:', currentTrack?.title);
     if (!currentTrack) return;
 
-    if (window.AudioEngine) {
-        const aeIsPlaying = window.AudioEngine.state.isPlaying;
-        console.log('[Music] Using AudioEngine. isPlaying:', aeIsPlaying);
-        if (aeIsPlaying) window.AudioEngine.pause();
-        else window.AudioEngine.play();
-        return;
-    }
-
-    console.log('[Music] Falling back to local playback. isPlaying:', isPlaying);
     if (window.AudioEngine) {
         const aeIsPlaying = window.AudioEngine.state.isPlaying;
         if (aeIsPlaying) window.AudioEngine.pause();
@@ -671,6 +661,9 @@ function playNext() {
             currentIndex = 0;
             const next = currentPlaylist[0];
             playSong(next.trackName, next.artistName, next.artworkUrl100, next.genre || '', next.previewUrl || '', 0);
+        } else {
+            isPlaying = false;
+            updatePlayBtn();
         }
         return;
     }
@@ -701,13 +694,16 @@ function playPrev() {
     }
 }
 
+let radioFetching = false;
 async function startRadio() {
     if (!currentTrack) {
         toggleRadioMode();
         return;
     }
-const remaining = currentPlaylist.length - (currentIndex + 1);
+    const remaining = currentPlaylist.length - (currentIndex + 1);
     if (remaining > 5) return;
+    if (radioFetching) return;
+    radioFetching = true;
 
     notify('info', 'Radio', 'Refining discovery...');
 
@@ -754,6 +750,8 @@ const remaining = currentPlaylist.length - (currentIndex + 1);
         }
     } catch (e) {
         console.error("Radio Error", e);
+    } finally {
+        radioFetching = false;
     }
 }
 
@@ -1075,13 +1073,13 @@ function loadPlaylists() {
     if (customContainer) {
         const custom = playlists.filter(p => p.name !== 'Favorites');
         customContainer.innerHTML = custom.map(p => `
-            <div class="playlist-item" onclick="toggleCustomPlaylist('${esc(p.name)}')">
+            <div class="playlist-item" onclick="toggleCustomPlaylist(${JSON.stringify(p.name).replace(/</g, '\\u003c')})">
                 <div class="playlist-icon"><i class="fa-solid fa-list"></i></div>
                 <div class="playlist-info">
                     <div class="playlist-name">${esc(p.name)} <i class="fa-solid fa-chevron-down playlist-expand"></i></div>
                     <div class="playlist-count">${p.songs.length} songs</div>
                 </div>
-                <i class="fa-solid fa-trash" style="margin-left:auto; opacity:0.5; cursor:pointer; font-size:12px;" onclick="event.stopPropagation(); deletePlaylist('${esc(p.name)}')"></i>
+                <i class="fa-solid fa-trash" style="margin-left:auto; opacity:0.5; cursor:pointer; font-size:12px;" onclick="event.stopPropagation(); deletePlaylist(${JSON.stringify(p.name).replace(/</g, '\\u003c')})"></i>
             </div>
             <div class="playlist-songs" id="pl-${esc(p.name)}">
                 ${p.songs.map((s, i) => renderMiniSong(s, p.name, i)).join('')}
@@ -1178,7 +1176,7 @@ function showAddToPlaylistMenu(btn) {
                 previewUrl: currentTrack.previewUrl || ''
             };
 
-            if (!pl.songs.some(s => s.trackName?.toLowerCase() === song.trackName?.toLowerCase())) {
+            if (!pl.songs.some(s => s.trackName?.toLowerCase() === song.trackName?.toLowerCase() && s.artistName?.toLowerCase() === song.artistName?.toLowerCase())) {
                 pl.songs.push(song);
                 savePlaylists();
                 loadPlaylists();

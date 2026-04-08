@@ -134,30 +134,40 @@ async function getSharedConnection() {
     }
 
     sharedConnection = new BareMux.BareMuxConnection(getBasePath() + "bareworker.js");
-    let usedFallback = false; // Track if we've already fallen back to prevent loops
+    let usedFallback = false;
+    
+    const setLibcurl = async (conn, w) => {
+        await conn.setManualTransport(`
+            return (async () => {
+                const { LibcurlTransport } = await import('${LIBCURL_URL}');
+                await LibcurlTransport.load_wasm();
+                return [LibcurlTransport, 'libcurl'];
+            })()
+        `, [{ wisp: w }]);
+    };
+
     try {
-        await sharedConnection.setTransport(
-            transportUrl,
-            [{ wisp: wispUrl }]
-        );
+        if (transport === "libcurl") {
+            await setLibcurl(sharedConnection, wispUrl);
+        } else {
+            await sharedConnection.setTransport(EPOXY_URL, [{ wisp: wispUrl }]);
+        }
     } catch (e) {
         console.error("Transport failed:", e);
-        // If libcurl failed, retry once then fall back to epoxy
         if (transport === "libcurl") {
             try {
                 console.log("Retrying libcurl transport...");
-                await sharedConnection.setTransport(LIBCURL_URL, [{ wisp: wispUrl }]);
+                await setLibcurl(sharedConnection, wispUrl);
             } catch (retryErr) {
                 console.error("Libcurl retry failed, falling back to epoxy:", retryErr);
                 await sharedConnection.setTransport(EPOXY_URL, [{ wisp: wispUrl }]);
                 notify('warning', 'Transport Fallback', 'Libcurl failed to initialize. Falling back to Epoxy.');
             }
         } else if (transport === "epoxy" && !usedFallback) {
-            // Epoxy failed  try libcurl as fallback (only once to prevent loops)
             usedFallback = true;
             try {
                 console.log("Epoxy failed, falling back to libcurl...");
-                await sharedConnection.setTransport(LIBCURL_URL, [{ wisp: wispUrl }]);
+                await setLibcurl(sharedConnection, wispUrl);
                 notify('warning', 'Transport Fallback', 'Epoxy failed. Using Libcurl for this session.');
             } catch (fallbackErr) {
                 console.error("Libcurl fallback also failed:", fallbackErr);

@@ -175,7 +175,7 @@
                 ${details ? `<code style="display: block; margin-top: 15px; font-size: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 4px; word-break: break-all; opacity: 0.4; font-family: monospace;">${details}</code>` : ''}
             `;
         }
-        function getErrorType(msg) { msg = (msg || '').toLowerCase(); if (msg.includes('fetch') || msg.includes('network')) return 'connectionFailed'; if (msg.includes('timeout')) return 'timeout'; if (msg.includes('blocked') || msg.includes('cors') || msg.includes('access')) return 'blocked'; if (msg.includes('websocket') || msg.includes('wisp')) return 'proxyError'; return 'unknown' }
+        function getErrorType(msg) { msg = (msg || '').toLowerCase(); if (msg.includes('fetch') || msg.includes('network')) return 'connectionFailed'; if (msg.includes('timeout')) return 'timeout'; if (msg.includes('blocked') || msg.includes('cors') || msg.includes('access')) return 'blocked'; if (msg.includes('websocket') || msg.includes('wisp') || msg.includes('tls') || msg.includes('handshake')) return 'proxyError'; return 'unknown' }
 
         let scramjetInstance = null;
         let connectionInstance = null;
@@ -213,8 +213,23 @@
             let usedFallback = false; // Track if we've already fallen back to prevent loops
 
             connectionInstance = new BareMux.BareMuxConnection(basePath + "bareworker.js");
+            
+            const setLibcurl = async (conn, w) => {
+                await conn.setManualTransport(`
+                    return (async () => {
+                        const { LibcurlTransport } = await import('${LIBCURL_URL}');
+                        await LibcurlTransport.load_wasm();
+                        return [LibcurlTransport, 'libcurl'];
+                    })()
+                `, [{ wisp: w }]);
+            };
+
             try {
-                await connectionInstance.setTransport(transportUrl, [{ wisp: wispUrl }]);
+                if (transport === "libcurl") {
+                    await setLibcurl(connectionInstance, wispUrl);
+                } else {
+                    await connectionInstance.setTransport(EPOXY_URL, [{ wisp: wispUrl }]);
+                }
             } catch (e) {
                 console.error("Embed: Primary transport failed:", e);
                 if (transport === "libcurl") {
@@ -224,7 +239,7 @@
                     // Epoxy failed - try libcurl as fallback (only once to prevent loops)
                     usedFallback = true;
                     console.log("Embed: Epoxy failed, trying libcurl...");
-                    await connectionInstance.setTransport(LIBCURL_URL, [{ wisp: wispUrl }]);
+                    await setLibcurl(connectionInstance, wispUrl);
                 } else {
                     throw e;
                 }

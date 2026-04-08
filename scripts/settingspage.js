@@ -732,6 +732,11 @@ document.getElementById('clear-cache').onclick = async () => {
         } catch (e) { console.error('SW unregister error:', e); }
     }
 
+    localStorage.removeItem('phantom_config_v');
+    localStorage.removeItem('phantom_server_config');
+    localStorage.removeItem('phantom_cache_v');
+    localStorage.removeItem('void_settings');
+
     if (window.Notify) Notify.success('Success', 'Cache cleared! Reloading...');
     else alert('Cache cleared successfully! Reloading...');
 
@@ -740,31 +745,9 @@ document.getElementById('clear-cache').onclick = async () => {
 document.getElementById('reset-settings').onclick = () => {
     if (!confirm('Reset all settings?')) return;
     localStorage.removeItem('void_settings');
+    localStorage.removeItem('phantom_config_v');
+    localStorage.removeItem('phantom_server_config');
+    localStorage.removeItem('phantom_cache_v');
     location.reload();
 };
 
-// Remote News Switch Sync (Backend)
-(async function syncRemoteNewsSwitch() {
-    try {
-        const res = await fetch('https://raw.githubusercontent.com/Destroyed12121/Phantom101/refs/heads/master/config.js');
-        if (!res.ok) return;
-
-        const text = await res.text();
-        const match = text.match(/window\.SITE_CONFIG\s*=\s*({[\s\S]+});?/);
-        if (match) {
-            const remote = new Function(`return ${match[1]}`)();
-            if (remote.news && remote.news.enabled === false) {
-                const toggle = document.getElementById('news-toggle');
-                const row = toggle?.parentElement;
-                if (row) {
-                    row.style.opacity = '0.5';
-                    row.style.pointerEvents = 'none';
-                    const desc = row.querySelector('.setting-desc');
-                    if (desc) desc.textContent = 'This feature is currently disabled by the developer.';
-                }
-            }
-        }
-    } catch (e) {
-        console.warn('Failed to sync remote news switch');
-    }
-})();

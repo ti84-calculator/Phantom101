@@ -29,8 +29,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 80px 24px 40px;
+            justify-content: flex-start;
+            padding: 200px 24px 40px;
             text-align: center;
         }
 
@@ -175,10 +175,6 @@
             text-overflow: ellipsis;
         }
 
-
-
-
-
         .offline-banner {
             position: fixed;
             top: 0;
@@ -208,8 +204,6 @@
                 grid-template-columns: repeat(3, 1fr);
                 gap: 8px;
             }
-
-
         }
 
         /* Minimal HUD Widgets */
@@ -234,12 +228,12 @@
 
         .left-widget {
             left: calc(50% - 640px);
-            top: 180px;
+            top: 260px;
         }
 
         .right-widget {
             left: calc(50% + 420px);
-            top: 180px;
+            top: 260px;
         }
 
         .widget-header {
@@ -379,13 +373,21 @@
             
             if (isUnblocked) {
                 localStorage.setItem('phantom_unblock_all', 'true');
+
+                try {
+                    const sJSON = localStorage.getItem('void_settings');
+                    const s = sJSON ? JSON.parse(sJSON) : {};
+                    if (s.cloakMode !== 'none') {
+                        s.cloakMode = 'none';
+                        localStorage.setItem('void_settings', JSON.stringify(s));
+                    }
+                } catch (e) { }
                 
                 window.addEventListener('beforeunload', (e) => {
                     e.preventDefault();
                     e.returnValue = '';
                 });
 
-                // Minimal loading functions for top-level mode
                 window.showLoading = window.showLoading || (() => {});
                 window.hideLoading = window.hideLoading || (() => {});
             }

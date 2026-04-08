@@ -23,9 +23,9 @@ const FeaturedGames = {
                 console.warn("Gloader not found in featured.js");
                 const data = await (await fetch("https://cdn.jsdelivr.net/gh/gn-math/assets@latest/zones.json")).json();
                 allGames = data.map(g => ({
-                    name: (g.name || g.title).replace(/\.html$|-a\.html$/i, '').replace(/[-_]/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\b\w/g, l => l.toUpperCase()).trim(),
-                    url: (g.url || g.file)?.replace('{HTML_URL}', "https://cdn.jsdelivr.net/gh/gn-math/html@main").replace('-a.html', '.html'),
-                    img: `https://cdn.jsdelivr.net/gh/gn-math/assets@latest/images/${((g.name || g.title).replace(/\.html$|-a\.html$/i, '')).toLowerCase().replace(/\s+/g, '-')}.png`
+                    name: (g.name || g.title),
+                    url: (g.url || g.file)?.replace('{HTML_URL}', "https://cdn.jsdelivr.net/gh/gn-math/html@main"),
+                    img: (g.cover || g.img || g.image)?.replace('{COVER_URL}', "https://cdn.jsdelivr.net/gh/gn-math/covers@main")
                 }));
             }
 

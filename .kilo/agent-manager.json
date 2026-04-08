@@ -1,5 +1,40 @@
 {
-  "worktrees": {},
-  "sessions": {},
+  "worktrees": {
+    "wt-1774730601014-1": {
+      "branch": "evergreen-dog",
+      "path": "c:\\Users\\54321\\Downloads\\unblockedgames\\phantom - Copy - Copy\\.kilo\\worktrees\\evergreen-dog",
+      "parentBranch": "testing",
+      "createdAt": "2026-03-28T20:43:21.014Z",
+      "remote": "origin"
+    },
+    "wt-1774730629534-2": {
+      "branch": "spice-freighter",
+      "path": "c:\\Users\\54321\\Downloads\\unblockedgames\\phantom - Copy - Copy\\.kilo\\worktrees\\spice-freighter",
+      "parentBranch": "master",
+      "createdAt": "2026-03-28T20:43:49.534Z",
+      "remote": "origin"
+    },
+    "wt-1774731574406-3": {
+      "branch": "field-cousin",
+      "path": "c:\\Users\\54321\\Downloads\\unblockedgames\\phantom - Copy - Copy\\.kilo\\worktrees\\field-cousin",
+      "parentBranch": "testing",
+      "createdAt": "2026-03-28T20:59:34.406Z",
+      "remote": "origin"
+    }
+  },
+  "sessions": {
+    "ses_2c9d01b7fffeoyiz09VI1M4euM": {
+      "worktreeId": "wt-1774730601014-1",
+      "createdAt": "2026-03-28T20:43:21.753Z"
+    },
+    "ses_2c9cfac8fffeiMv3s6MmdYjne8": {
+      "worktreeId": "wt-1774730629534-2",
+      "createdAt": "2026-03-28T20:43:50.002Z"
+    },
+    "ses_2c9c14155ffe503WO5gDc59Rxk": {
+      "worktreeId": "wt-1774731574406-3",
+      "createdAt": "2026-03-28T20:59:35.084Z"
+    }
+  },
   "sessionsCollapsed": true
 }

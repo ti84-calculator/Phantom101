@@ -1,21 +1,17 @@
 window.SITE_CONFIG = {
     name: "Phantom",
     fullName: "Phantom Unblocked",
-    version: "1.1.7",
+    version: "1.1.9",
 
     changelog: [
-        "more sources in movies",
-        "fixxed games",
-        "fixxed a broken auto provider switch for movies",
-        "added dragging for news and weather widgets",
-        "unblocked twitch chat",
-        "minor changes"
+        "replaced widgetbot",
+        "small changes",
+
 
     ],
 
     quotes: [
         "lebron lebron lebronn james",
-        "this is what happens when u dont touch grass",
         "FULL PIECE",
         "200!",
         "press esc + refresh + power button for hacks",
@@ -29,7 +25,11 @@ window.SITE_CONFIG = {
 
     todos: [
         "singlefile",
-        "make domainfinder say if its blocked or not"
+        "***make domainfinder say if its blocked or not***",
+        "***fix embed.html***",
+        "***fix music and yt searching*** (maybe)",
+        "redo browser maybe with tabs on the side or browser controls on the bottom",
+        "phantomv2🥀never coming🥀🥀unless i break another wrist and quit football🥀(50/50)"
     ],
     defaultWisp: "wss://lunarrr.eminescusm.ro/w/",
     wispServers: [
@@ -45,11 +45,17 @@ window.SITE_CONFIG = {
         widgetChannel: "1447673726228496617",
     },
 
-    firstVisitCloak: false, // fake offline page
+    firstVisitCloak: false,
     firstVisitCloakKey: "c",
+
+    domainLock: {
+        enabled: false,
+        password: ""
+    },
+
     defaults: {
         cloakMode: "about:blank",
-        selectedCloakPreset: "Quiz",
+        selectedCloakPreset: "NewTab",
         cloakRotation: false,
         cloakInterval: 5000,
         panicKey: "x",
@@ -87,13 +93,15 @@ window.SITE_CONFIG = {
     themePresets: {
         dark: { name: 'Dark (Default)', bg: { type: 'color', value: '#0a0a0a' }, surface: '#0f0f0f', surfaceHover: '#1a1a1a', surfaceActive: '#252525', secondary: '#2e2e33', border: '#2a2a2a', borderLight: '#2a2a2a', text: '#e4e4e7', textSec: '#71717a', textDim: '#52525b', accent: '#ffffff' },
         midnight: { name: 'Midnight', bg: { type: 'color', value: '#000000' }, surface: '#050505', surfaceHover: '#111111', surfaceActive: '#1a1a1a', secondary: '#111111', border: '#1a1a1a', borderLight: '#111111', text: '#ededed', textSec: '#a3a3a3', textDim: '#737373', accent: '#d4d4d4' },
-        abyss: { name: 'Abyss', bg: { type: 'color', value: '#060a1a' }, surface: '#060a1a', surfaceHover: '#060a1a', surfaceActive: '#060a1a', secondary: '#060a1a', border: '#1e293b', borderLight: '#1e293b', text: '#f1f5f9', textSec: '#94a3b8', textDim: '#64748b', accent: '#38bdf8' },
+        abyss: { name: 'Abyss', bg: { type: 'color', value: '#020617' }, surface: '#0f172a', surfaceHover: '#1e293b', surfaceActive: '#334155', secondary: '#1e293b', border: '#1e293b', borderLight: '#1e293b', text: '#f1f5f9', textSec: '#94a3b8', textDim: '#64748b', accent: '#38bdf8' },
         phantom: { name: 'Phantom', bg: { type: 'color', value: '#0f0a14' }, surface: '#1a0f24', surfaceHover: '#2e1a40', surfaceActive: '#4c2a5c', secondary: '#2e1a40', border: '#2e1a40', borderLight: '#2e1a40', text: '#f3e8ff', textSec: '#d8b4fe', textDim: '#c084fc', accent: '#c084fc' },
         catppuccin: { name: 'Catppuccin', bg: { type: 'color', value: '#1e1e2e' }, surface: '#181825', surfaceHover: '#313244', surfaceActive: '#45475a', secondary: '#181825', border: '#313244', borderLight: '#313244', text: '#cdd6f4', textSec: '#a6adc8', textDim: '#7f849c', accent: '#cba6f7' },
-        ocean: { name: 'Oceanic', bg: { type: 'color', value: '#011627' }, surface: '#0B1823', surfaceHover: '#1d3b53', surfaceActive: '#2d4b63', secondary: '#0b2942', border: '#1d3b53', borderLight: '#0b2942', text: '#d6deeb', textSec: '#5f7e97', textDim: '#011627', accent: '#7fdbca' },
+        rosepine: { name: 'Rose Pine', bg: { type: 'color', value: '#191724' }, surface: '#1f1d2e', surfaceHover: '#26233a', surfaceActive: '#524f67', secondary: '#26233a', border: '#26233a', borderLight: '#1f1d2e', text: '#e0def4', textSec: '#908caa', textDim: '#6e6a86', accent: '#ebbcba' },
+        ocean: { name: 'Oceanic', bg: { type: 'color', value: '#011627' }, surface: '#0b2942', surfaceHover: '#1d3b53', surfaceActive: '#2d4b63', secondary: '#0b2942', border: '#1d3b53', borderLight: '#0b2942', text: '#d6deeb', textSec: '#92a1b5', textDim: '#63778d', accent: '#7fdbca' },
+        crimson: { name: 'Crimson', bg: { type: 'color', value: '#1a0505' }, surface: '#230a0a', surfaceHover: '#7b0a0aff', surfaceActive: '#7f1d1d', secondary: '#230a0a', border: '#480f0fff', borderLight: '#230a0a', text: '#fef2f2', textSec: '#fecaca', textDim: '#450a0a', accent: '#ef4444' },
+        flame: { name: 'Flame', bg: { type: 'color', value: '#0c0202' }, surface: '#1c0a0a', surfaceHover: '#451a03', surfaceActive: '#9a3412', secondary: '#1c0a0a', border: '#451a03', borderLight: '#9a3412', text: '#fff7ed', textSec: '#fdba74', textDim: '#ea580c', accent: '#f59e0b' }
     },
 
-    // use "active: true" to set a default background or theme
     backgroundPresets: [
         { id: 'none', name: 'None (Theme Default)', type: 'none' },
         { id: 'f1 car', name: 'F1 Car', type: 'image', url: 'https://images.pexels.com/photos/14401632/pexels-photo-14401632.jpeg', overlay: 0.15 },
@@ -101,7 +109,7 @@ window.SITE_CONFIG = {
         { id: 'turtle', name: 'Turtle', type: 'image', url: 'https://images.unsplash.com/photo-1501791187590-9ef2612ba1eb?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', overlay: 0.15, },
         { id: 'road', name: 'Road', type: 'image', url: 'https://images.unsplash.com/photo-1508233620467-f79f1e317a05', overlay: 0.15 },
         { id: 'arena', name: 'Arena', type: 'image', url: 'https://images.pexels.com/photos/4500123/pexels-photo-4500123.jpeg', overlay: 0.15 },
-        { id: 'mountain', name: 'Mountain', type: 'image', url: 'https://raw.githubusercontent.com/evanhnry/brave-wallpapers/refs/heads/main/Brave/clay-banks-u27Rrbs9Dwc-unsplash.jpg', overlay: 0.05 },
+        { id: 'mountain', name: 'Mountain', type: 'image', url: 'https://cdn.jsdelivr.net/gh/evanhnry/brave-wallpapers@main/Brave/clay-banks-u27Rrbs9Dwc-unsplash.jpg', overlay: 0.05 },
     ],
 
     cloakPresets: [
@@ -119,6 +127,7 @@ window.SITE_CONFIG = {
         { name: "Gmail", icon: "https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico", title: "Gmail" },
         { name: "YouTube", icon: "https://www.youtube.com/favicon.ico", title: "YouTube" },
         { name: "Powerschool", icon: "https://waverlyk12.powerschool.com/favicon.ico", title: "Grades and Attendance" },
+        { name: "NewTab", icon: "https://cdn.jsdelivr.net/gh/chromium/chromium@main/chrome/app/theme/default_200_percent/common/favicon_ntp.png", title: "New Tab" },
         { name: "nothing", icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", title: "​" },
     ],
 

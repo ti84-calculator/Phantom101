@@ -129,9 +129,10 @@
 
         getProxyPath() {
             const path = window.location.pathname;
-            // The proxies folder is at the root
-            if (path.includes('/staticsjv2/') || path.includes('/pages/')) return '../scripts/bg-proxy.html';
-            return 'scripts/bg-proxy.html';
+            const pathParts = path.split('/').filter(Boolean);
+            const depth = pathParts.length;
+            const relativePath = depth > 1 ? '../'.repeat(depth - 1) + 'scripts/bg-proxy.html' : 'scripts/bg-proxy.html';
+            return relativePath;
         },
 
         async waitForReady(timeout = 5000) {
@@ -218,7 +219,7 @@
             const custom = s.customBackground;
             const theme = s.background || {};
 
-            let type = null, url = null, pos = null, overlay = 0.4;
+            let type = null, url = null, pos = null, overlay = 0;
 
             if (custom && custom.id !== 'none' && custom.type !== 'none') {
                 if (custom.id && custom.id !== 'custom') {

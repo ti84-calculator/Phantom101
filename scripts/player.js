@@ -347,18 +347,6 @@ if (isPlayerPage) {
 
                 const errorDetect = !res.ok || h.toLowerCase().includes('package size exceeded') || (h.length < 1000 && h.includes('github.com/'));
                 
-                if (errorDetect && url.includes('cdn.jsdelivr.net')) {
-                    let gh = url.replace('cdn.jsdelivr.net/gh/', 'raw.githubusercontent.com/');
-                    gh = gh.replace(/raw\.githubusercontent\.com\/([^\/]+\/[^\/]+)\/([^\/]+)/, (m, p1, p2) => {
-                        return (p2 === 'main' || p2 === 'master') ? m : `raw.githubusercontent.com/${p1}/main/${p2}`;
-                    });
-                    
-                    try {
-                        let r2 = await fetch(gh);
-                        if (!r2.ok) r2 = await fetch(gh.replace('/main/', '/master/'));
-                        if (r2.ok) { res = r2; h = await r2.text(); window.Notify?.info('CDN Fallback', 'Using backup mirror for large game'); }
-                    } catch (e) { console.warn('Fallback failed:', e); }
-                }
 
                 if (!res.ok) throw new Error('Fetch failed');
                 const isError = h.includes('404: Not Found') || h.length < 100;

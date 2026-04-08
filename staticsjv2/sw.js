@@ -343,6 +343,37 @@ self.addEventListener("fetch", (event) => {
     })());
 });
 
+const EPOXY_URL = "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2.1.28/dist/index.mjs";
+const LIBCURL_URL = "https://cdn.jsdelivr.net/gh/Destroyed12121/Staticsj@main/libcurl.mjs";
+
+function isTlsError(msg) {
+    msg = (msg || '').toLowerCase();
+    return msg.includes('tls') || msg.includes('handshake') || (msg.includes('eof') && msg.includes('connect'));
+}
+
+let bareMuxConnection = null;
+
+async function setupTransport(transport, wispUrl) {
+    if (!bareMuxConnection) {
+        bareMuxConnection = new BareMux.BareMuxConnection(basePath + "bareworker.js");
+    }
+    
+    if (transport === "libcurl") {
+        // Use a manual transport function to ensure load_wasm is called in the worker
+        await bareMuxConnection.setManualTransport(`
+            return (async () => {
+                const { LibcurlTransport } = await import('${LIBCURL_URL}');
+                await LibcurlTransport.load_wasm();
+                return [LibcurlTransport, 'libcurl'];
+            })()
+        `, [{ wisp: wispUrl }]);
+    } else {
+        await bareMuxConnection.setTransport(EPOXY_URL, [{ wisp: wispUrl }]);
+    }
+    
+    scramjet.client = new BareMux.BareClient();
+}
+
 scramjet.addEventListener("request", async (e) => {
     e.response = (async () => {
         await configReadyPromise;
@@ -352,34 +383,31 @@ scramjet.addEventListener("request", async (e) => {
         }
 
         if (!scramjet.client) {
-            const connection = new BareMux.BareMuxConnection(basePath + "bareworker.js");
-            const EPOXY_URL = "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2.1.28/dist/index.mjs";
-            const LIBCURL_URL = "https://cdn.jsdelivr.net/gh/Destroyed12121/Staticsj@main/libcurl.mjs";
-            let transportUrl = wispConfig.transport === "libcurl" ? LIBCURL_URL : EPOXY_URL;
-
             try {
-                await connection.setTransport(transportUrl, [{ wisp: wispConfig.wispurl }]);
+                await setupTransport(wispConfig.transport, wispConfig.wispurl);
             } catch (err) {
                 console.warn("SW: Transport failed, attempting fallback:", err);
-                if (wispConfig.transport === "libcurl") {
-                    await connection.setTransport(EPOXY_URL, [{ wisp: wispConfig.wispurl }]);
+                const alt = wispConfig.transport === "libcurl" ? "epoxy" : "libcurl";
+                try {
+                    await setupTransport(alt, wispConfig.wispurl);
                     const clients = await self.clients.matchAll();
                     clients.forEach(client => {
                         client.postMessage({
                             type: 'transportFallback',
-                            original: 'libcurl',
-                            fallback: 'epoxy',
+                            original: wispConfig.transport,
+                            fallback: alt,
                             error: err.message
                         });
                     });
-                } else {
+                } catch {
                     throw err;
                 }
             }
-            scramjet.client = new BareMux.BareClient();
         }
 
         let lastErr;
+        let triedTransportSwap = false;
+        let triedServerSwap = false;
 
         for (let i = 0; i <= MAX_RETRIES; i++) {
             try {
@@ -413,16 +441,51 @@ scramjet.addEventListener("request", async (e) => {
                     errMsg.includes("handshake") ||
                     errMsg.includes("reset");
 
-                if (!isRetryable || i === MAX_RETRIES || e.method !== 'GET') break;
+                if (!isRetryable || e.method !== 'GET') break;
+
+                if (isTlsError(err.message) && !triedTransportSwap) {
+                    triedTransportSwap = true;
+                    const alt = wispConfig.transport === "libcurl" ? "epoxy" : "libcurl";
+                    console.warn(`SW: TLS error, swapping transport to ${alt}`);
+                    try {
+                        scramjet.client = null;
+                        await setupTransport(alt, wispConfig.wispurl);
+                        continue;
+                    } catch { }
+                }
+
+                if (isTlsError(err.message) && !triedServerSwap && wispConfig.autoswitch && wispConfig.servers?.length > 1) {
+                    triedServerSwap = true;
+                    for (const server of wispConfig.servers) {
+                        if (server.url === wispConfig.wispurl) continue;
+                        const ping = await pingServer(server.url);
+                        if (ping.success) {
+                            console.warn(`SW: TLS error persists, switching WISP to ${server.url}`);
+                            switchToServer(server.url, ping.latency, "TLS handshake failure");
+                            scramjet.client = null;
+                            try {
+                                await setupTransport(wispConfig.transport, server.url);
+                                continue;
+                            } catch { }
+                            break;
+                        }
+                    }
+                }
+
+                if (i === MAX_RETRIES) break;
 
                 console.warn(`Scramjet retry ${i + 1}/${MAX_RETRIES} for ${e.url} due to: ${err.message}`);
+                scramjet.client = null;
                 await new Promise(r => setTimeout(r, 500 * (i + 1)));
+                try {
+                    await setupTransport(wispConfig.transport, wispConfig.wispurl);
+                } catch { }
             }
         }
 
         updateServerHealth(wispConfig.wispurl, false);
 
-        if (wispConfig.autoswitch && wispConfig.servers && wispConfig.servers.length > 1) {
+        if (wispConfig.autoswitch && wispConfig.servers && wispConfig.servers.length > 1 && !triedServerSwap) {
             const currentHealth = serverHealth.get(wispConfig.wispurl);
 
             if (currentHealth && currentHealth.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
@@ -444,3 +507,4 @@ scramjet.addEventListener("request", async (e) => {
         return new Response("Scramjet Fetch Error: " + lastErr.message, { status: 502 });
     })();
 });
+

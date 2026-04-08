@@ -60,7 +60,7 @@ const Games = {
             );
             const gnmathData = await gnmathResponse.json();
             gnmathData.forEach(file => {
-                const idMatch = file.name.match(/^\/(\d+)\.html$/);
+                const idMatch = file.name.match(/^\/(\d+)[^/]*\.html$/);
                 if (idMatch) {
                     const id = parseInt(idMatch[1]);
                     this.popularityData[duration][id] = file.hits?.total ?? 0;
@@ -204,7 +204,7 @@ const Games = {
 
     getPopularity(game, duration = 'year') {
 
-        const idMatch = game.url?.match(/\/(\d+)\.html$/);
+        const idMatch = game.url?.match(/\/(\d+)[^/]*\.html$/);
         if (idMatch) {
             const id = parseInt(idMatch[1]);
             return this.popularityData[duration]?.[id] ?? 0;

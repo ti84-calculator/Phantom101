@@ -2,6 +2,15 @@
 (function () {
     'use strict';
 
+    try {
+        const remoteCfg = localStorage.getItem('phantom_server_config');
+        if (remoteCfg) {
+            window.SITE_CONFIG = JSON.parse(remoteCfg);
+        }
+    } catch (e) {
+        console.error("Failed to apply remote configuration", e);
+    }
+
     const STORAGE_KEY = 'void_settings';
 
     const getDefaults = () => {
@@ -114,6 +123,11 @@
             } else {
                 root.style.setProperty('--bg-image', 'none');
             }
+
+            const titleEl = document.querySelector('.site-title');
+            if (titleEl && window.SITE_CONFIG?.fullName) {
+                titleEl.textContent = window.SITE_CONFIG.fullName;
+            }
         },
 
         onChange(callback) {
@@ -157,6 +171,9 @@
     };
 
     const init = () => {
+        if (localStorage.getItem('phantom_unblock_all') === 'true' && _settings.cloakMode !== 'none') {
+            Settings.update({ cloakMode: 'none' });
+        }
         Settings.apply();
 
         const featured = window.SITE_CONFIG?.featuredBackground;
