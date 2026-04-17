@@ -1,9 +1,10 @@
 window.SITE_CONFIG = {
     name: "Phantom",
     fullName: "Phantom Unblocked",
-    version: "1.1.9",
+    version: "1.1.9+",
 
     changelog: [
+        "fixxed gnmath games",
         "replaced widgetbot",
         "small changes",
 
