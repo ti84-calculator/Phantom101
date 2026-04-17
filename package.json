@@ -4,7 +4,7 @@
   "main": "config.js",
   "scripts": {
     "build": "node build.js",
-    "deploy": "npm run build && npx surge --project ./dist --domain phantom202.surge.sh && cd dist && git init && git add -A && git commit -m \"v1.1.9+\" && git checkout -b min && git push -f https://github.com/Destroyed12121/Phantom101.git min"
+    "deploy": "npm run build && npx surge --project ./dist --domain phantom202.surge.sh && cd dist && git init && git add -A && git commit -m \"Deploy\" && git checkout -b min && git push -f https://github.com/Destroyed12121/Phantom101.git min"
   },
   "repository": {
     "type": "git",
